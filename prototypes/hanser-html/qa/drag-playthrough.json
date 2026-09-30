@@ -1,0 +1,108 @@
+[
+  {
+    "turn": "06",
+    "action": "拖动移动 0,-2",
+    "nextTurn": "07"
+  },
+  {
+    "turn": "07",
+    "action": "拖动普攻 2",
+    "nextTurn": "08"
+  },
+  {
+    "turn": "08",
+    "action": "拖动普攻 2",
+    "nextTurn": "09"
+  },
+  {
+    "turn": "09",
+    "action": "拖动普攻 2",
+    "nextTurn": "10"
+  },
+  {
+    "turn": "10",
+    "action": "拖动普攻 2",
+    "nextTurn": "11"
+  },
+  {
+    "turn": "11",
+    "action": "拖动普攻 3",
+    "nextTurn": "12"
+  },
+  {
+    "turn": "12",
+    "action": "拖动普攻 1",
+    "nextTurn": "13"
+  },
+  {
+    "turn": "13",
+    "action": "拖动普攻 3",
+    "nextTurn": "14"
+  },
+  {
+    "turn": "14",
+    "action": "拖动普攻 3",
+    "nextTurn": "14"
+  },
+  {
+    "action": "拖动弃牌",
+    "state": {
+      "basics": [
+        {
+          "disabled": "false",
+          "id": "move"
+        },
+        {
+          "disabled": "false",
+          "id": "attack"
+        }
+      ],
+      "enemies": [
+        {
+          "id": "3",
+          "label": "守卫 3 等待",
+          "q": 1,
+          "r": -2
+        }
+      ],
+      "hand": [
+        {
+          "id": "2",
+          "type": "blink"
+        },
+        {
+          "id": "6",
+          "type": "rest"
+        },
+        {
+          "id": "5",
+          "type": "rest"
+        },
+        {
+          "id": "1",
+          "type": "blink"
+        }
+      ],
+      "hp": "18 / 20",
+      "notice": "操作已完成。",
+      "phase": "准备阶段 · 由你行动",
+      "player": {
+        "q": 0,
+        "r": -2
+      },
+      "queue": "将下方小刀、弓箭、魔法拖到这里",
+      "result": false,
+      "turn": "15"
+    }
+  },
+  {
+    "turn": "15",
+    "action": "拖动普攻 3",
+    "nextTurn": "15"
+  },
+  {
+    "turn": "15",
+    "result": "战斗胜利，全部敌人与增援均已解决。本次进行 15 回合。返回入口后可修改配置，从整个测试关卡开始。",
+    "hp": "20 / 20"
+  }
+]

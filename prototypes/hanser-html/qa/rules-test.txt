@@ -1,0 +1,48 @@
+✔ self-contained HTML and both scripts parse (2.174ms)
+✔ every initial turn has both fixed basic cards plus three deterministic skills (4.5073ms)
+✔ deck limits and hand cap are validated (0.5691ms)
+✔ cancelled or wrong-zone drops consume no card, health, cooldown or round (0.5553ms)
+✔ move card requires an adjacent free cell; obstacle, occupancy, distance, outside rejected (0.7137ms)
+✔ attack card needs an adjacent enemy and always replenishes next turn (0.4893ms)
+✔ each prepared card consumes one round; no duplicates and capacity three (0.438ms)
+✔ free queue drop reorder and removal neither advance cooldown nor refund preparation (0.4881ms)
+✔ move, attack, wait and normal injury preserve queue (0.6541ms)
+✔ combo locks all other card drops and requires all three direction decisions (1.018ms)
+✔ invalid direction and stale execution card do not advance combo (0.3812ms)
+✔ fresh cooldown is unchanged on release round; later full rounds decrement once (0.4295ms)
+✔ dagger hits only the adjacent target (0.3678ms)
+✔ bow hits the first enemy within three cells, not later enemies (0.354ms)
+✔ magic damages both line cells and resolves knockback from far to near (0.6394ms)
+✔ obstacles stop every attack ray (0.6658ms)
+✔ blink to free cell within two hexes is free, preserves queue and enemy intents (0.7071ms)
+✔ blink crosses intermediate obstacles but cannot land on occupied/blocked/distant/self cells (0.5323ms)
+✔ healing card targets player only, caps at maximum and moves to discard for free (0.4413ms)
+✔ extra ability free use does not draw another card or reset basic state (0.4631ms)
+✔ probability 0/1 behaves correctly and draws remove actual copies (0.6198ms)
+✔ discard-zone drop discards extra abilities only (0.3962ms)
+✔ shuffle recycles only discarded copies and leaves held cards untouched (0.4144ms)
+✔ overflow locks actions until player chooses enough discards, then settles once (0.3581ms)
+✔ exact hand cap needs no discard; fixed basic and prepared cards do not count (0.2687ms)
+✔ normal attack locks direction and does not retarget after a dodge (0.3143ms)
+✔ knockback translates attack preview while direction remains fixed (0.3754ms)
+✔ blocked knockback does not add collision damage (0.286ms)
+✔ enemy attack can hit player and another enemy in the same effect (0.2784ms)
+✔ a killed enemy is skipped but later enemies still act (0.3642ms)
+✔ occupied telegraphed destination fails without replacing move with attack (0.2608ms)
+✔ enemy movement ties resolve in appearance order (0.6734ms)
+✔ distant attacks covering player still automatically show (0.3235ms)
+✔ pending reinforcement blocks win, warns turn 4, enters turn 5 before player action (0.3372ms)
+✔ blocked spawn defers reinforcement instead of losing it (0.2886ms)
+✔ last kill does not short-circuit remaining combo cards (0.348ms)
+✔ simultaneous death is defeat and death cannot get stuck at over-limit discard (0.4278ms)
+✔ same seed/actions reproduce cards and enemies; restart resets transient state (1.8192ms)
+✔ AI random draws do not change card shuffle stream (0.4618ms)
+✔ 20 seeded play sequences preserve card counts, unique positions and nonnegative cooldown (16.9578ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 175.7411
