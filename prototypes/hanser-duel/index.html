@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#142b2e"><link rel="icon" href="data:,">
+<title>憨之轨迹 · 回响之间 / 2.5D</title>
+<style>
+:root{color-scheme:dark;--mint:#bce6cf;--gold:#edcf90;--red:#ff9585;--paper:#f4f1df;--muted:#b0bdb4;--line:#ffffff28;font-family:"Segoe UI","Microsoft YaHei",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:#172b2e;color:var(--paper)}button{font:inherit;color:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}button:focus-visible{outline:2px solid var(--gold);outline-offset:4px}[hidden]{display:none!important}h1,h2,h3,p{margin:0}small{display:block}kbd{display:inline-grid;place-items:center;font:11px "Segoe UI",sans-serif;border:1px solid #d3e3ce70;border-radius:50%;width:25px;height:25px;color:var(--paper);flex-shrink:0}
+.app{position:relative;height:100dvh;min-height:640px;isolation:isolate;overflow:hidden;background:#273e40}#battle-surface{position:absolute;inset:0}#world{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(#04191c77,transparent 20%,transparent 78%,#04191caa),radial-gradient(ellipse at 50% 45%,transparent 40%,#09252a66)}
+.hud-top{position:absolute;left:30px;right:30px;top:24px;display:flex;align-items:start;justify-content:space-between;z-index:10}.brand{font-size:17px;letter-spacing:4px;font-weight:650;text-shadow:0 2px 6px #000}.brand small{font-size:9px;letter-spacing:3px;color:#c0d2c1;margin-top:5px}.top-actions{display:flex;gap:8px;align-items:center}.build-label{font-size:10px;letter-spacing:2px;color:#d3dbbf;margin-right:10px}.quiet{padding:8px 13px;border:1px solid #bdcfb94a;background:#102628b3;font-size:12px;border-radius:3px}.quiet:hover{background:#3c5550}.order{position:absolute;top:91px;left:30px;max-width:calc(100% - 60px);display:flex;align-items:center;gap:12px;z-index:9}.order-label{font-size:9px;letter-spacing:2px;color:#bccdbf;white-space:nowrap}.order-track{display:flex;gap:6px;align-items:center;overflow:hidden}.order-chip{font-size:10px;white-space:nowrap;padding:6px 10px;background:#122e31a6;border:1px solid #c5d8c427;transform:skew(-8deg);color:#d2dbcf}.order-chip.current{border-color:var(--mint);color:var(--mint);background:#2b5146c9}.order-chip.ultimate{border-color:var(--gold);color:var(--gold)}.order-chip.enemy{color:#ecc3ad}.order-arrow{color:#e0e2b85a;font-size:10px}
+.scene-label{position:absolute;left:30px;top:147px;color:#d2d9bd80;font-size:10px;letter-spacing:4px;pointer-events:none}.shot-label{position:absolute;left:30px;bottom:88px;font-size:10px;letter-spacing:2px;color:#c3d1bc99;pointer-events:none}
+.enemy-health{position:absolute;z-index:4;width:175px;text-align:center;pointer-events:none;transform:translate(-50%,-100%);text-shadow:0 2px 5px #000}.enemy-health strong{font-size:13px;letter-spacing:2px}.enemy-health small{font-size:10px;color:#e8c7b8;margin:5px 0}.hp-rail{height:4px;background:#0006;transform:skew(-20deg)}.hp-fill{height:100%;background:var(--mint);transition:width .15s}.enemy-health .hp-fill{background:#e3b092}.statuses{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}.enemy-health .statuses{justify-content:center}.status{font-size:10px;border:1px solid #dcdfaf55;padding:3px 7px;background:#173637bb;color:var(--gold);border-radius:2px}
+.player-hud{position:absolute;bottom:25px;right:30px;z-index:10;width:270px;background:linear-gradient(110deg,#132c2ba8,#0c2226db);border-left:2px solid var(--mint);padding:14px 17px;box-shadow:0 10px 30px #0002}.player-heading{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}.player-heading span{font-size:12px;color:#d0e1cd}.resource-row{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:10px;color:var(--muted)}.tp{display:flex;gap:4px;align-items:center}.tp i{width:13px;height:7px;transform:skew(-22deg);background:#ffffff20}.tp i.on{background:var(--mint)}.tp b{margin-left:5px;font-weight:400;color:var(--paper)}.energy{height:3px;flex:1;background:#ffffff1a}.energy-fill{height:100%;background:var(--gold)}.energy-value{color:var(--gold);width:52px;text-align:right}.ult-shortcut{display:flex;justify-content:space-between;align-items:center;width:100%;padding:7px 0 0;margin-top:6px;border:0;border-top:1px solid #ffffff16;background:transparent;font-size:11px;color:var(--gold)}.ult-shortcut kbd{width:19px;height:19px;font-size:9px}.ult-shortcut.ready{color:#ffe9b4;text-shadow:0 0 10px #ffd16b77}.ult-shortcut:disabled{opacity:.55}.ult-shortcut:hover:not(:disabled){color:white}
+.battle-menu{position:absolute;width:285px;z-index:15;transform:rotate(-4deg);transform-origin:left center;filter:drop-shadow(0 6px 15px #0003)}.menu-kicker{font-size:10px;letter-spacing:3px;color:var(--gold);margin:0 0 12px 30px;text-shadow:0 2px 4px #000}.menu-options{display:flex;flex-direction:column;gap:9px}.ribbon{position:relative;border:0;border-left:2px solid #d0d2a37a;background:linear-gradient(100deg,#102a2ce8,#0e2529db);text-align:left;padding:12px 18px 12px 14px;min-height:51px;width:100%;display:flex;align-items:center;gap:13px;clip-path:polygon(1% 7%,96% 0,100% 80%,96% 97%,0 100%);transition:background .12s,translate .12s;color:#f1efd9}.ribbon:nth-child(2){margin-left:9px}.ribbon:nth-child(3){margin-left:18px}.ribbon:nth-child(4){margin-left:27px}.ribbon.selected{background:linear-gradient(100deg,#d7dfbc,#adc5ae);color:#183833;border-left-color:#fff5c6;translate:7px 0;box-shadow:0 0 20px #f4e7ae22}.ribbon.selected kbd{border-color:#43675788;color:#244a3d}.ribbon:hover:not(:disabled){background:#385f51}.ribbon.selected:hover{background:#d7dfbc}.ribbon strong{font-size:18px;font-weight:500;letter-spacing:2px}.ribbon small{font-size:10px;margin-top:5px;line-height:1.65;color:#bac9b9}.ribbon.selected small{color:#426356}.ribbon .menu-copy{flex:1}.ribbon .cost{font-size:10px;color:var(--gold);align-self:start;margin-top:7px;white-space:nowrap}.ribbon.selected .cost{color:#375c4d}.menu-footer{margin:15px 0 0 29px;display:flex;align-items:center;gap:12px;font-size:10px;color:#d5ddbf}.back-button{background:#0d292ac9;border:1px solid #d9dfc655;padding:6px 12px;border-radius:2px;font-size:11px;color:var(--paper)}.menu-help{font-size:9px;line-height:1.5;opacity:.8}.battle-menu.submenu{width:365px;transform:rotate(-3deg)}.submenu .ribbon{min-height:67px;padding-top:10px;padding-bottom:10px}.submenu .ribbon strong{font-size:16px}.submenu .ribbon small{max-width:260px}.submenu .ribbon:not(.selected) small{display:none}
+.target-card{position:absolute;left:30px;top:150px;z-index:15;width:300px;background:linear-gradient(120deg,#11292de8,#102a2bb8);border-top:2px solid var(--gold);padding:20px 22px;clip-path:polygon(0 0,96% 0,100% 5%,100% 95%,4% 100%,0 96%)}.target-card small{font-size:10px;color:var(--gold);letter-spacing:3px;margin-bottom:11px}.target-card h2{font-size:25px;letter-spacing:3px;margin-bottom:12px;font-weight:500}.target-card p{color:#cfdbc8;font-size:12px;line-height:1.9}.target-card .target-meta{font-size:11px;color:var(--mint);margin-top:12px}.target-actions{display:flex;gap:10px;margin-top:20px}.target-actions button{flex:1;min-height:38px;border:1px solid #d2dcb377;background:#1f473e;color:var(--paper);font-size:12px}.target-actions button:first-child{background:var(--mint);color:#143529}.target-actions button:hover{filter:brightness(1.15)}
+.target-hit{position:absolute;z-index:8;border:0;background:transparent;color:var(--gold);cursor:crosshair;min-width:90px;min-height:100px}.target-hit:before,.target-hit:after{content:'';position:absolute;top:7px;bottom:7px;width:20%;border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);opacity:.8}.target-hit:before{left:0;border-left:2px solid var(--gold)}.target-hit:after{right:0;border-right:2px solid var(--gold)}.target-hit span{position:absolute;left:0;right:0;bottom:-24px;font-size:11px;letter-spacing:2px;text-shadow:0 2px 4px #000}.target-hit:hover{background:#d9dda70b}
+.action-caption{position:absolute;top:145px;left:35%;right:15%;z-index:6;pointer-events:none;text-align:center;text-shadow:0 3px 10px #051e20}.action-caption small{font-size:10px;color:var(--gold);letter-spacing:4px;margin-bottom:9px}.action-caption h2{font-size:27px;letter-spacing:5px;font-weight:500}.action-caption p{margin-top:8px;font-size:11px;color:#e2ddc2}
+.qte{position:absolute;z-index:18;width:275px;transform:translate(-50%,-50%);text-align:center;filter:drop-shadow(0 3px 9px #041a20);pointer-events:none}.qte-title{font-size:12px;color:#fff1cd;letter-spacing:1px;margin-bottom:22px;background:linear-gradient(90deg,transparent,#102d2ac9,transparent);padding:6px}.cue-row{display:flex;justify-content:center;gap:35px}.cue-wrap{position:relative;width:85px;height:85px;display:grid;place-items:center}.cue-wrap svg{position:absolute;inset:-27px;width:139px;height:139px;pointer-events:none;overflow:visible}.cue-wrap .target-ring{fill:none;stroke:#f2e8b777;stroke-width:1;stroke-dasharray:3 5}.cue-wrap .moving-ring{fill:none;stroke:#dfd8b9;stroke-width:2}.cue-wrap.ready .moving-ring{stroke:var(--mint);stroke-width:4;filter:drop-shadow(0 0 7px #c6ffd9)}.cue-wrap.precise .moving-ring{stroke:var(--gold)}.cue-wrap.red .moving-ring{stroke:var(--red)}.cue-button{pointer-events:auto;position:relative;width:63px;height:63px;transform:rotate(45deg);border:1px solid #e3dfb688;background:#122e2ce8;box-shadow:0 0 0 5px #152e2e55;display:grid;place-items:center;transition:background .1s}.cue-button span{display:flex;flex-direction:column;align-items:center;transform:rotate(-45deg);font-size:23px;font-family:Georgia,"Microsoft YaHei",serif;color:#e6edcb}.cue-button small{font-family:"Segoe UI","Microsoft YaHei",sans-serif;font-size:9px;margin-top:2px}.cue-button:hover:not(:disabled){background:#2d6253;border-color:white}.cue-button:disabled{opacity:.5}.cue-status{height:18px;margin-top:24px;font-size:11px;color:#ece6c9;letter-spacing:1px}.qte .beat-dots{display:flex;justify-content:center;gap:8px;margin-top:10px}.beat{width:5px;height:5px;border:1px solid #f3e8c1;transform:rotate(45deg)}.beat.done{background:var(--mint)}.beat.fail{background:var(--red)}.beat.active{box-shadow:0 0 8px white}.hit-float{position:absolute;z-index:16;pointer-events:none;transform:translate(-50%,-50%);text-align:center;font:italic 600 42px Georgia,serif;text-shadow:0 3px 8px #000}.hit-float small{font:11px "Microsoft YaHei",sans-serif;letter-spacing:2px;margin-top:4px}.toast{position:absolute;bottom:34px;left:30px;max-width:calc(100% - 360px);font-size:11px;line-height:1.8;color:#e5e7ca;background:#0b272d99;padding:8px 12px;border-left:2px solid #d4d8ac;pointer-events:none;z-index:10}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .overlay{position:absolute;inset:0;z-index:30;background:#07111ad9;backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;padding:28px;overflow:auto}.setup-card{max-width:1040px;width:100%;display:grid;grid-template-columns:32% 1fr;border:1px solid #a8e7ce2a;border-radius:10px;overflow:hidden;background:#14232cf5;box-shadow:0 30px 100px #0006}.intro{padding:38px 30px;background:radial-gradient(ellipse at 20% 90%,#3c635742,transparent 65%),#0e1d26;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:start}.eyebrow{color:var(--mint);font-size:10px;letter-spacing:3px}.intro h1{font-size:38px;letter-spacing:5px;font-weight:500;line-height:1.5;margin-top:22px}.intro .english{font-size:9px;color:#809e9e;letter-spacing:3px;margin-top:8px}.intro p{font-size:12px;color:#a6bbb9;line-height:2;margin-top:24px}.intro-symbol{font-size:82px;line-height:1.3;color:#bfe6cd;margin-top:auto;filter:drop-shadow(0 0 25px #a8e7ce33)}.intro .footnote{font-size:10px;line-height:1.8;color:#6e918d;margin-top:22px}.setup-content{padding:28px 30px}.section-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}.section-label h2{font-size:16px;font-weight:500;letter-spacing:1px}.section-label span{font-size:11px;color:var(--mint)}.candidates{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.candidate{position:relative;background:#ffffff03;border:1px solid #ffffff19;border-radius:6px;text-align:left;padding:13px 12px;min-height:132px}.candidate.selected{border-color:#a8e7ce80;background:#a8e7ce0b}.candidate .pick{position:absolute;right:10px;top:10px;color:var(--mint);font-size:10px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:1px solid #ffffff25}.candidate.selected .pick{background:var(--mint);color:#132c27;border-color:var(--mint)}.candidate .skill-icon{display:block;margin-bottom:8px}.candidate strong{font-size:14px}.candidate small{font-size:10px;line-height:1.6;color:#a6b8bc;margin-top:6px}.candidate .origin{color:#78978f;font-size:9px;margin-top:7px}.ult-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.ult-option{border:1px solid #ffffff1a;background:#ffffff03;border-radius:5px;text-align:left;padding:13px 15px}.ult-option.selected{border-color:#e7c27c99;background:#e7c27c0b}.ult-option strong{font-size:13px}.ult-option b{float:right;font-size:12px;color:var(--gold);font-weight:500}.ult-option small{font-size:10px;color:var(--muted);margin-top:7px}.ult-label{margin-top:22px}.start-row{display:flex;gap:15px;align-items:center;margin-top:23px}.primary{border:1px solid var(--mint);background:var(--mint);color:#122b25;border-radius:4px;font-weight:650;padding:13px 24px;font-size:14px;letter-spacing:1px}.primary:hover:not(:disabled){background:#c8f6e3;color:#122b25}.start-row .primary{min-width:180px}.setup-tip{font-size:10px;color:var(--muted);line-height:1.8}.setup-error{font-size:11px;min-height:15px;margin-top:10px;color:var(--gold)}.modal{max-width:460px;width:100%;padding:37px;text-align:center;background:#162832;border:1px solid #a8e7ce44;border-radius:9px;box-shadow:0 25px 80px #0007}.modal h2{font-size:30px;letter-spacing:4px;font-weight:500;margin:15px 0}.modal p{font-size:12px;color:var(--muted);line-height:1.9}.modal .primary{margin-top:24px}.result-icon{font-size:58px;color:var(--gold)}.result-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0;margin:25px 0}.result-stats b{font-size:22px;color:var(--mint);display:block;margin-bottom:6px}.result-stats span{font-size:10px;color:var(--muted)}.result-actions{display:flex;gap:10px;justify-content:center}.result-actions .primary{margin:0}.help-grid{display:grid;grid-template-columns:90px 1fr;text-align:left;gap:14px;margin:24px 0;color:var(--muted);font-size:12px;line-height:1.7}.help-grid b{color:var(--paper);font-weight:500}.help-modal{max-width:530px}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+.overlay{z-index:40}.primary{border:1px solid var(--mint);background:var(--mint);color:#122b25;border-radius:4px;font-weight:650;padding:13px 24px;font-size:14px;letter-spacing:1px}.primary:hover:not(:disabled){background:#e2f4d5}.skill-icon{font-size:23px;color:var(--mint)}.eyebrow{color:var(--mint);font-size:10px;letter-spacing:3px}.intro .footnote{font-size:10px;line-height:1.8;color:#8da99c}.help-grid kbd{width:auto;min-width:21px;height:22px;padding:0 5px;border-radius:3px}
+@media(max-width:900px){.hud-top{left:20px;right:20px;top:18px}.order{left:20px;top:77px;max-width:calc(100% - 40px)}.build-label{display:none}.scene-label{left:20px;top:123px}.player-hud{right:20px;bottom:20px;width:225px;padding:12px}.battle-menu{width:235px}.battle-menu.submenu{width:300px}.ribbon strong{font-size:16px}.submenu .ribbon strong{font-size:14px}.ribbon small{font-size:9px}.ribbon{padding:10px 13px;gap:10px}.ribbon:nth-child(n){margin-left:0}.target-card{left:20px;top:130px;width:245px;padding:17px}.target-card h2{font-size:20px}.target-card p{font-size:11px}.action-caption{left:27%;right:6%;top:126px}.toast{left:20px;bottom:22px;max-width:calc(100% - 270px)}.shot-label{left:20px;bottom:85px;font-size:9px}.setup-card{grid-template-columns:27% 1fr}.intro{padding:27px 20px}.intro h1{font-size:30px}.setup-content{padding:24px}}
+@media(max-width:650px){.app{min-height:760px}.hud-top{left:16px;right:16px}.brand{font-size:14px;letter-spacing:2px}.brand small{font-size:8px}.quiet{padding:7px 9px;font-size:10px}.order{left:16px;top:75px;max-width:calc(100% - 32px);gap:8px}.order-chip{font-size:9px;padding:5px 8px}.order-label{font-size:8px}.scene-label{display:none}.player-hud{right:16px;bottom:16px;width:210px;padding:10px 12px}.player-heading{font-size:12px}.resource-row{margin-top:7px}.battle-menu{width:210px}.battle-menu.submenu{width:260px}.ribbon{min-height:47px;padding:9px 10px;gap:9px}.ribbon strong{font-size:14px}.ribbon kbd{width:22px;height:22px;font-size:10px}.submenu .ribbon{min-height:61px}.submenu .ribbon small{font-size:9px}.menu-footer{margin-left:10px;gap:6px}.menu-help{font-size:8px}.menu-kicker{margin-left:10px;font-size:9px}.target-card{left:16px;top:116px;width:220px;padding:14px}.target-card h2{font-size:18px}.target-card p{font-size:10px}.target-actions{gap:6px}.target-actions button{font-size:11px}.enemy-health{width:140px}.enemy-health strong{font-size:11px}.action-caption{top:122px;left:16%;right:8%}.action-caption h2{font-size:22px}.action-caption p{font-size:10px}.action-caption small{font-size:9px}.qte{width:245px}.cue-row{gap:27px}.cue-status{font-size:10px}.toast{left:16px;bottom:21px;max-width:calc(100% - 245px);font-size:9px;padding:5px 7px}.shot-label{left:16px;bottom:82px;max-width:130px;line-height:1.8}.overlay{padding:14px;align-items:flex-start}.setup-card{display:block;margin:auto 0}.intro{display:block;padding:18px;border-right:0;border-bottom:1px solid var(--line)}.intro h1{font-size:25px;line-height:1.3;margin-top:7px}.intro p{margin-top:9px;font-size:11px;line-height:1.7}.intro-symbol,.intro .footnote,.intro .english{display:none}.setup-content{padding:18px}.candidates{gap:7px}.candidate{min-height:130px;padding:9px}.candidate strong{font-size:12px}.candidate small{font-size:9px}.candidate .origin{font-size:8px}.ult-option{padding:10px}.ult-option strong{font-size:11px}.ult-option b{font-size:10px}.start-row .primary{min-width:140px;padding:12px}.setup-tip{font-size:9px}.modal{margin:auto 0;padding:25px}.help-grid{grid-template-columns:70px 1fr;gap:12px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ribbon,.hp-fill{transition:none}}
+</style>
+</head>
+<body>
+<main id="app" class="app">
+<div id="battle-surface">
+<canvas id="world" aria-label="带透视与动态镜头的残响庭院战场"></canvas><div class="vignette"></div>
+<header class="hud-top"><div class="brand">✧ 憨之轨迹<small>TRAILS OF HANSER / 回响之间</small></div><div class="top-actions"><span class="build-label">2.5D COMBAT STUDY</span><button id="help-button" class="quiet">操作说明</button><button id="pause-button" class="quiet" disabled>暂停</button></div></header>
+<div class="order"><span class="order-label">行动顺序</span><div id="order-track" class="order-track"></div></div>
+<div class="scene-label">残响庭院 / THE ECHO COURT</div><div id="shot-label" class="shot-label">斜后方 / 待机镜头</div>
+<div id="enemy-health" class="enemy-health"><strong>试炼残影</strong><small id="enemy-hp-text">260 / 260</small><div class="hp-rail"><div id="enemy-hp-fill" class="hp-fill" style="width:100%"></div></div><div id="enemy-status" class="statuses"></div></div>
+<aside class="player-hud" aria-label="毛怪状态"><div class="player-heading"><strong>毛怪</strong><span id="player-hp-text">120 / 120</span></div><div class="hp-rail"><div id="player-hp-fill" class="hp-fill" style="width:100%"></div></div><div class="resource-row"><span>技力</span><div id="tp" class="tp"></div></div><div class="resource-row"><span>大招能量</span><div class="energy"><div id="energy-fill" class="energy-fill"></div></div><span id="energy-value" class="energy-value">0 / 60</span></div><button id="ult-shortcut" class="ult-shortcut" disabled><span id="ult-label">曙光一闪</span><kbd>R</kbd></button><div id="player-status" class="statuses"></div></aside>
+<nav id="battle-menu" class="battle-menu" aria-label="角色旁行动菜单"><div id="menu-kicker" class="menu-kicker">YOUR TURN / 选择行动</div><div id="menu-options" class="menu-options"></div><div class="menu-footer"><button id="menu-back" class="back-button" hidden>返回</button><span id="menu-help" class="menu-help">↑ ↓ 选择 · Enter 确认<br>也可直接点击菜单</span></div></nav>
+<section id="target-card" class="target-card" aria-label="目标确认" hidden><small id="target-kicker">SELECT TARGET</small><h2 id="target-title"></h2><p id="target-desc"></p><div id="target-meta" class="target-meta"></div><div class="target-actions"><button id="confirm-target">确认施放 ↗</button><button id="cancel-target">返回 Esc</button></div></section>
+<button id="target-hit" class="target-hit" aria-label="点击目标确认施放" hidden><span>点击确认 ◇</span></button>
+<div id="action-caption" class="action-caption" hidden><small id="action-eyebrow"></small><h2 id="action-title"></h2><p id="action-subtitle"></p></div>
+<div id="qte" class="qte" hidden><div id="qte-title" class="qte-title"></div><div class="cue-row">
+<div id="dodge-wrap" class="cue-wrap"><svg viewBox="0 0 140 140" aria-hidden="true"><circle class="target-ring" cx="70" cy="70" r="43"/><circle class="moving-ring" cx="70" cy="70" r="65"/></svg><button id="dodge-button" class="cue-button" aria-label="闪避 J"><span>J<small>闪避</small></span></button></div>
+<div id="parry-wrap" class="cue-wrap"><svg viewBox="0 0 140 140" aria-hidden="true"><circle class="target-ring" cx="70" cy="70" r="43"/><circle class="moving-ring" cx="70" cy="70" r="65"/></svg><button id="parry-button" class="cue-button" aria-label="精准格挡 K"><span>K<small>格挡</small></span></button></div>
+<div id="timing-wrap" class="cue-wrap"><svg viewBox="0 0 140 140" aria-hidden="true"><circle class="target-ring" cx="70" cy="70" r="43"/><circle class="moving-ring" cx="70" cy="70" r="65"/></svg><button id="timing-button" class="cue-button" aria-label="共鸣卡点 空格"><span>␣<small>共鸣</small></span></button></div>
+</div><div id="cue-status" class="cue-status"></div><div id="beat-dots" class="beat-dots"></div><div id="qte-meter" class="sr-only" role="progressbar" aria-label="当前这一击的节奏进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+<div id="hit-float" class="hit-float" hidden></div><div id="toast" class="toast">在角色身旁选择行动。鼠标与键盘可随时混用。</div>
+</div>
+  <section id="setup" class="overlay" role="dialog" aria-modal="true" aria-labelledby="setup-title"><div class="setup-card"><div class="intro"><div class="eyebrow">COMBAT STUDY / 02</div><h1 id="setup-title">回响之间</h1><div class="english">A SMALL COURAGE. A NEW ECHO.</div><p>走入庭院，带上四种回响。<br>在镜头与动作之间读懂节奏，<br>在攻与守之间积蓄回响。</p><div class="intro-symbol">✧</div><div class="footnote">憨之轨迹 · 独立 1V1 战斗参考<br>占位信物与招式，不代表正式设定。</div></div><div class="setup-content"><div class="section-label"><h2>搭配普通技能</h2><span id="selected-count">4 / 4 槽位</span></div><div id="candidates" class="candidates"></div><div class="section-label ult-label"><h2>选择一个大招</h2><span>额外行动 · 独立能量</span></div><div id="ult-options" class="ult-options"></div><div class="start-row"><button id="start" class="primary">进入试炼 <span aria-hidden="true">↗</span></button><div class="setup-tip">每个信物的能力可自由混搭。<br>点击已选技能取消，再选择其他技能。</div></div><div id="setup-error" class="setup-error" role="status"></div></div></div></section>
+  <section id="pause-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="pause-title" hidden><div class="modal"><div class="eyebrow">TAKE A BREATH</div><h2 id="pause-title">稍作停留</h2><p id="pause-reason">战斗时钟已暂停，当前判定窗口保留。</p><button id="resume" class="primary">继续战斗</button></div></section>
+  <section id="help-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden><div class="modal help-modal"><div class="eyebrow">FIELD GUIDE</div><h2 id="help-title">读懂回响</h2><div class="help-grid"><b>菜单</b><span>点击角色旁的指令，或用 ↑ ↓ / W S 选择、Enter 确认。1 / 2 / 3 / 4 可选当前列表对应项。</span><b>目标</b><span>选择招式后预览目标。点击角色、确认按钮，或按 Enter 施放。点击返回或 Esc 可取消，不扣费。</span><b>卡点</b><span>动作附近的光圈收向内环时，点击“共鸣”或按空格。漏按保留基础效果。</span><b>应对</b><span>点击闪避 / 格挡，或按 J / K。闪避较宽容，格挡要求更精确；红光无法格挡。每击独立、只接收一次选择。</span><b>大招</b><span>选招阶段可预览并确认大招；动作期间点击右下大招入口或按 R 预约，整组动作结束后插入。</span><b>暂停</b><span>主菜单或动作期间按 Esc，或点击右上暂停。子菜单 Esc 为返回。系统失焦时暂停，点击继续或 Esc 恢复。</span></div><p>鼠标和键盘均可独立完成全部流程，也可随时混用。长按不会自动应对后续攻击。</p><button id="close-help" class="primary">明白了</button></div></section>
+  <section id="result-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" hidden><div class="modal"><div id="result-icon" class="result-icon">✧</div><div id="result-eyebrow" class="eyebrow">TRIAL COMPLETE</div><h2 id="result-title">回响未息</h2><p id="result-copy"></p><div id="result-stats" class="result-stats"></div><div class="result-actions"><button id="retry" class="primary">原搭配重试</button><button id="reconfigure" class="quiet">重新搭配</button></div><p style="margin-top:20px;font-size:10px">重试只用于本次原型验证，不代表正式关卡规则。</p></div></section>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+</main>
+
+<script id="duel-core">
+'use strict';
+(() => {
+  const DEFAULTS = Object.freeze({ playerHP: 120, enemyHP: 260, playerSpeed: 110, enemySpeed: 100,
+    maxTP: 6, initialTP: 3, attackTP: 2, parryTP: 1, attackEnergy: 8, skillEnergy: 12,
+    timingEnergy: 4, dodgeWindow: 280, parryWindow: 110, timingWindow: 160,
+    itemCount: 3, itemHeal: 45, enemyPattern: ['single', 'combo', 'red', 'mixed'] });
+  const SKILLS = Object.freeze({
+    strike: { name: '碎光', source: '碎晶信物', icon: '✦', cost: 2, type: 'attack', damage: [24], bonus: 8, timing: true, desc: '造成 24 伤害；卡点成功额外 +8。', tag: '单击 · 可选卡点' },
+    flurry: { name: '回旋', source: '碎晶信物', icon: '≋', cost: 3, type: 'attack', damage: [10, 10, 10], bonus: 4, timing: true, desc: '连续三击，每击 10 伤害；成功点各 +4。', tag: '三连击 · 可选卡点' },
+    expose: { name: '破绽', source: '余烬信物', icon: '◇', cost: 1, type: 'expose', timing: false, desc: '敌人下一次受到完整伤害行动时，伤害 ×1.35。', tag: '易伤 · 无需卡点' },
+    empower: { name: '蓄光', source: '余烬信物', icon: '↑', cost: 1, type: 'empower', timing: false, desc: '下一次完整伤害行动的伤害 ×1.4。', tag: '强化 · 无需卡点' },
+    heal: { name: '暖息', source: '绒羽信物', icon: '+', cost: 2, type: 'heal', amount: 32, timing: false, desc: '恢复 32 生命，上限 120；基础回能不受影响。', tag: '治疗 · 无需卡点' },
+    ward: { name: '绒幕', source: '绒羽信物', icon: '⬡', cost: 2, type: 'ward', amount: 28, timing: false, desc: '获得 28 护盾，持续至吸收完伤害；不叠加。', tag: '护盾 · 无需卡点' }
+  });
+  const ULTS = Object.freeze({
+    surge: { name: '曙光一闪', cost: 60, damage: [72], bonus: 0, timing: false, icon: '✧', desc: '72 伤害 · 无需卡点', type: 'attack' },
+    nova: { name: '星屑共鸣', cost: 100, damage: [55, 55], bonus: 15, timing: true, icon: '✺', desc: '两击各 55 伤害 · 卡点各 +15', type: 'attack' }
+  });
+  const ENEMY_MOVES = Object.freeze({
+    single: { name: '沉刃', damage: [18], red: [false], spacing: 900, windup: 1400 },
+    combo: { name: '三叠斩', damage: [11, 11, 11], red: [false, false, false], spacing: 1000, windup: 1400 },
+    red: { name: '赤芒突袭', damage: [24], red: [true], spacing: 900, windup: 1650 },
+    mixed: { name: '三叠斩 · 赤芒', damage: [11, 14, 11], red: [false, true, false], spacing: 1000, windup: 1400 }
+  });
+  class Duel {
+    constructor(options = {}) {
+      this.config = { ...DEFAULTS, ...options };
+      for (const key of Object.keys(DEFAULTS).filter(k => k !== 'enemyPattern')) {
+        if (!Number.isFinite(this.config[key]) || this.config[key] < 0) throw new Error('无效参数：' + key);
+      }
+      if (!this.config.playerSpeed || !this.config.enemySpeed || !this.config.playerHP || !this.config.enemyHP) throw new Error('生命与速度必须大于 0');
+      if (!Array.isArray(this.config.enemyPattern) || !this.config.enemyPattern.length || this.config.enemyPattern.some(k => !ENEMY_MOVES[k])) throw new Error('无效的敌人招式');
+      this.loadout = [...(options.loadout || ['strike', 'flurry', 'expose', 'heal'])];
+      if (this.loadout.length !== 4 || new Set(this.loadout).size !== 4 || this.loadout.some(id => !SKILLS[id])) throw new Error('请选择四个不同的普通技能');
+      this.ultimate = options.ultimate || 'surge';
+      if (!ULTS[this.ultimate]) throw new Error('请选择一个大招');
+      this.player = { hp: this.config.playerHP, maxHP: this.config.playerHP };
+      this.enemy = { hp: this.config.enemyHP, maxHP: this.config.enemyHP };
+      this.tp = Math.min(this.config.maxTP, this.config.initialTP);
+      this.energy = 0; this.items = this.config.itemCount; this.shield = 0;
+      this.exposed = false; this.empowered = false; this.pendingUltimate = false;
+      this.interval = { player: 1000 / this.config.playerSpeed, enemy: 1000 / this.config.enemySpeed };
+      this.due = { ...this.interval }; this.now = 0; this.paused = false;
+      this.mode = 'choose'; this.result = null; this.action = null; this.sequence = 0; this.enemyTurns = 0;
+      this.events = []; this.eventId = 0; this.stats = { actions: 0, dodges: 0, parries: 0, timings: 0, damage: 0, ultimates: 0 };
+      this._nextNormal();
+    }
+    _emit(kind, text, value = 0, target = '') {
+      this.events.push({ id: ++this.eventId, at: this.now, kind, text, value, target });
+      if (this.events.length > 24) this.events.shift();
+    }
+    forecast(count = 7) {
+      const due = { ...this.due }, list = [];
+      for (let i = 0; i < count; i++) {
+        const actor = due.player <= due.enemy + 1e-9 ? 'player' : 'enemy';
+        list.push({ actor, at: due[actor] }); due[actor] += this.interval[actor];
+      }
+      return list;
+    }
+    _nextNormal() {
+      if (this.result) return;
+      if (this.due.player <= this.due.enemy + 1e-9) { this.mode = 'choose'; this.action = null; }
+      else {
+        const key = this.config.enemyPattern[this.enemyTurns % this.config.enemyPattern.length];
+        this._begin('enemy', 'enemy', key, ENEMY_MOVES[key]);
+      }
+    }
+    act(kind, id) {
+      if (this.paused || this.mode !== 'choose' || this.result) return false;
+      let spec;
+      if (kind === 'attack') spec = { name: '绒团冲撞', type: 'attack', damage: [14], timing: false };
+      else if (kind === 'skill') {
+        spec = SKILLS[id];
+        if (!this.loadout.includes(id) || !spec || this.tp < spec.cost) return false;
+        this.tp -= spec.cost;
+      } else if (kind === 'item') {
+        if (this.items <= 0 || this.player.hp >= this.player.maxHP) return false;
+        this.items--; spec = { name: '暖光药剂', type: 'heal', amount: this.config.itemHeal, timing: false };
+      } else return false;
+      this._begin('player', kind, id || kind, spec); return true;
+    }
+    _begin(actor, kind, key, spec) {
+      let multiplier = 1;
+      if (actor === 'player' && spec.damage) {
+        multiplier = (this.exposed ? 1.35 : 1) * (this.empowered ? 1.4 : 1);
+        this.exposed = false; this.empowered = false;
+      }
+      const windup = actor === 'enemy' ? spec.windup : (kind === 'ultimate' ? 1700 : spec.timing ? 1200 : 750);
+      const spacing = actor === 'enemy' ? spec.spacing : 850;
+      const hits = (spec.damage || [0]).map((damage, i) => ({ at: this.now + windup + i * spacing,
+        open: this.now + (i ? windup + (i - 1) * spacing + 220 : 0), damage,
+        red: !!spec.red?.[i], attempted: false, success: false, response: '', done: false }));
+      this.mode = 'action';
+      this.action = { id: ++this.sequence, actor, kind, key, spec, multiplier, started: this.now, hits, end: hits.at(-1).at + 600 };
+      this._emit('action', spec.name, 0, actor);
+    }
+    requestUltimate() {
+      if (this.paused || this.result || this.pendingUltimate || this.action?.kind === 'ultimate' || this.energy < ULTS[this.ultimate].cost) return false;
+      this.pendingUltimate = true;
+      this._emit('queue', '大招已预约 · 当前完整行动结束后释放');
+      if (this.mode === 'choose') this._startUltimate();
+      return true;
+    }
+    _startUltimate() {
+      this.pendingUltimate = false;
+      if (this.result || this.energy < ULTS[this.ultimate].cost) return false;
+      this.energy -= ULTS[this.ultimate].cost; this.stats.ultimates++;
+      this._begin('player', 'ultimate', this.ultimate, ULTS[this.ultimate]); return true;
+    }
+    input(kind) {
+      if (this.paused || this.result || this.mode !== 'action') return false;
+      const a = this.action, h = a.hits.find(h => !h.done);
+      if (!h || h.attempted || this.now < h.open || this.now > h.at) return false;
+      const enemy = a.actor === 'enemy';
+      if (enemy ? !['dodge', 'parry'].includes(kind) : (kind !== 'timing' || !a.spec.timing)) return false;
+      h.attempted = true; h.response = kind;
+      const window = kind === 'dodge' ? this.config.dodgeWindow : kind === 'parry' ? this.config.parryWindow : this.config.timingWindow;
+      h.success = h.at - this.now <= window && !(h.red && kind === 'parry');
+      this._emit('input', h.success ? '时机命中' : h.red && kind === 'parry' ? '红光无法格挡' : '过早 · 下一击仍可应对', 0, enemy ? 'player' : 'enemy');
+      return true;
+    }
+    nextEvent() {
+      if (!this.action) return Infinity;
+      return this.action.hits.find(h => !h.done)?.at ?? this.action.end;
+    }
+    // Events before the timestamp resolve first. At the exact timestamp input wins the tie.
+    advanceTo(target, input) {
+      if (this.paused || this.result) return false;
+      if (!Number.isFinite(target) || target < this.now) throw new Error('战斗时钟必须单调递增');
+      while (this.action && this.nextEvent() < target && !this.result) this._event();
+      if (this.result) return false;
+      this.now = target;
+      if (input) this.input(input);
+      while (this.action && this.nextEvent() <= target && !this.result) this._event();
+      if (!this.result) this.now = target;
+      return true;
+    }
+    _event() {
+      const a = this.action, h = a.hits.find(h => !h.done);
+      this.now = h ? h.at : a.end;
+      if (h) { h.done = true; this._resolveHit(a, h); }
+      else this._finish(a);
+    }
+    _energy(amount) { this.energy = Math.min(ULTS[this.ultimate].cost, this.energy + amount); }
+    _resolveHit(a, h) {
+      if (a.actor === 'enemy') {
+        if (h.success) {
+          if (h.response === 'parry') { this.tp = Math.min(this.config.maxTP, this.tp + this.config.parryTP); this.stats.parries++; }
+          else this.stats.dodges++;
+          this._emit(h.response, h.response === 'parry' ? '精准格挡 · 技力 +1' : '闪避成功', 0, 'player');
+        } else {
+          const absorbed = Math.min(this.shield, h.damage); this.shield -= absorbed;
+          const damage = h.damage - absorbed; this.player.hp = Math.max(0, this.player.hp - damage);
+          this._emit('damage', absorbed ? '护盾吸收 ' + absorbed : '受到伤害', damage, 'player');
+        }
+      } else if (a.spec.damage) {
+        const damage = Math.round((h.damage + (h.success ? a.spec.bonus || 0 : 0)) * a.multiplier);
+        this.enemy.hp = Math.max(0, this.enemy.hp - damage); this.stats.damage += damage;
+        if (h.success) { this.stats.timings++; if (a.kind === 'skill') this._energy(this.config.timingEnergy); }
+        this._emit(h.success ? 'perfect' : 'damage', h.success ? '共鸣命中' : '命中', damage, 'enemy');
+      } else if (a.spec.type === 'heal') {
+        const gain = Math.min(a.spec.amount, this.player.maxHP - this.player.hp); this.player.hp += gain;
+        this._emit('heal', '生命恢复', gain, 'player');
+      } else if (a.spec.type === 'ward') { this.shield = Math.max(this.shield, a.spec.amount); this._emit('buff', '绒幕 · 护盾 28', 0, 'player'); }
+      else if (a.spec.type === 'empower') { this.empowered = true; this._emit('buff', '蓄光 · 下次伤害 ×1.4', 0, 'player'); }
+      else if (a.spec.type === 'expose') { this.exposed = true; this._emit('buff', '破绽 · 下次承伤 ×1.35', 0, 'enemy'); }
+      this._outcome();
+    }
+    _finish(a) {
+      if (a.kind === 'attack') { this.tp = Math.min(this.config.maxTP, this.tp + this.config.attackTP); this._energy(this.config.attackEnergy); }
+      else if (a.kind === 'skill') this._energy(this.config.skillEnergy);
+      if (a.kind !== 'ultimate') { this.due[a.actor] += this.interval[a.actor]; if (a.actor === 'enemy') this.enemyTurns++; else this.stats.actions++; }
+      this.action = null;
+      if (this.pendingUltimate && this._startUltimate()) return;
+      this._nextNormal();
+    }
+    _outcome() {
+      if (this.player.hp > 0 && this.enemy.hp > 0) return;
+      this.result = this.player.hp <= 0 ? 'defeat' : 'victory'; this.mode = 'result';
+      this.action = null; this.pendingUltimate = false; this.paused = false;
+      this._emit('result', this.result === 'victory' ? '战斗胜利' : '暂时退却');
+    }
+    pause() { if (this.result) return false; this.paused = true; return true; }
+    resume() { if (this.result) return false; this.paused = false; return true; }
+  }
+
+  class BattleMenu {
+    constructor(game) { this.game = game; this.page = 'main'; this.index = 0; this.pending = null; this.origin = 'main'; }
+    available() { return this.game.mode === 'choose' && !this.game.paused && !this.game.result; }
+    options() {
+      const g = this.game;
+      if (this.page === 'main') return [
+        {id:'attack',name:'攻击',hint:'稳定恢复技力',enabled:true},
+        {id:'skills',name:'技能',hint:'四种装备能力',enabled:true},
+        {id:'items',name:'物品',hint:'暖光药剂 ×'+g.items,enabled:true},
+        {id:'ultimate',name:'大招',hint:ULTS[g.ultimate].name,enabled:g.energy>=ULTS[g.ultimate].cost}
+      ];
+      if (this.page === 'skills') return g.loadout.map(id=>({id,name:SKILLS[id].name,hint:SKILLS[id].desc,enabled:g.tp>=SKILLS[id].cost,cost:SKILLS[id].cost}));
+      if (this.page === 'items') return [{id:'potion',name:'暖光药剂',hint:'恢复 45 生命 · 剩余 '+g.items,enabled:g.items>0&&g.player.hp<g.player.maxHP}];
+      return [{id:'confirm',name:'确认施放',enabled:true},{id:'back',name:'返回',enabled:true}];
+    }
+    current() { return this.options()[this.index]; }
+    move(delta) {
+      if (!this.available()) return false;
+      const opts=this.options();
+      for(let n=0;n<opts.length;n++) {
+        this.index=(this.index+delta+opts.length)%opts.length;
+        if(opts[this.index].enabled) return true;
+      }
+      return false;
+    }
+    activate(id = this.current()?.id) {
+      if (!this.available()) return false;
+      const entry=this.options().find(x=>x.id===id);
+      if (!entry?.enabled) return false;
+      if (id === 'back') return this.back();
+      if (id === 'confirm') return this.confirm();
+      this.index=this.options().findIndex(x=>x.id===id);
+      if (this.page==='main' && (id==='skills'||id==='items')) { this.page=id;this.index=0;return true; }
+      this.origin=this.page;
+      const kind = this.page==='skills'?'skill':this.page==='items'?'item':id;
+      const spec=kind==='skill'?SKILLS[id]:kind==='ultimate'?ULTS[this.game.ultimate]:null;
+      this.pending={kind,id:kind==='skill'?id:undefined,name:spec?.name||(kind==='item'?'暖光药剂':'绒团冲撞'),
+        desc:spec?.desc||(kind==='item'?'恢复 45 生命，消耗一份药剂与本次行动。':'造成 14 伤害，恢复 2 技力与 8 能量。'),
+        target:kind==='item'||['heal','ward','empower'].includes(spec?.type)?'player':'enemy'};
+      this.page='target';this.index=0;return true;
+    }
+    confirm() {
+      if (!this.available() || this.page!=='target' || !this.pending) return false;
+      const p=this.pending;
+      const ok=p.kind==='ultimate'?this.game.requestUltimate():this.game.act(p.kind,p.id);
+      if(ok) {this.page='main';this.index=0;this.pending=null;}
+      return ok;
+    }
+    back() {
+      if(!this.available()) return false;
+      if(this.page==='target') {this.page=this.origin;this.index=0;this.pending=null;return true;}
+      if(this.page!=='main') {this.page='main';this.index=0;return true;}
+      return false;
+    }
+    sync() { if(this.game.mode!=='choose') {this.page='main';this.index=0;this.pending=null;} }
+  }
+  const sub3=(a,b)=>a.map((v,i)=>v-b[i]);
+  const dot3=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+  const cross3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const unit3=a=>{const len=Math.hypot(...a)||1;return a.map(v=>v/len);};
+  function cameraFrame(pose) {
+    const forward=unit3(sub3(pose.target,pose.eye));
+    const right=unit3(cross3(forward,[0,1,0]));
+    return {eye:pose.eye,forward,right,up:cross3(right,forward),focal:1/Math.tan(pose.fov*Math.PI/360)};
+  }
+  function projectPoint(point,frame,width,height) {
+    const v=sub3(point,frame.eye),depth=dot3(v,frame.forward);
+    if(depth<=.15) return null;
+    const scale=height*.5*frame.focal/depth;
+    return {x:width*.5+dot3(v,frame.right)*scale,y:height*.5-dot3(v,frame.up)*scale,depth,scale};
+  }
+
+  const api = { Duel, DEFAULTS, SKILLS, ULTS, ENEMY_MOVES, BattleMenu, cameraFrame, projectPoint };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else globalThis.HanserDuel = api;
+})();
+</script>
+<script id="duel-scene">
+'use strict';
+(() => {
+  const {cameraFrame,projectPoint}=HanserDuel;
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x)), mix=(a,b,t)=>a+(b-a)*t, smooth=t=>t*t*(3-2*t);
+  const PH=[-2,0,2], PE=[1.6,0,-2.6];
+  const SHOTS={
+    command:{eye:[-.2,2.8,7.7],target:[0,.9,-.9],fov:53,label:'01 / 斜后方 · 行动选择'},
+    skills:{eye:[1.7,3.9,7.2],target:[-.7,.85,.1],fov:55,label:'02 / 侧移 · 展开技能'},
+    targetEnemy:{eye:[.2,2.5,2.5],target:[1.6,1.3,-2.6],fov:52,label:'03 / 目标特写 · 确认施放'},
+    targetSelf:{eye:[1.1,2.1,5.7],target:[-2,1,2],fov:54,label:'03 / 回望自身 · 确认施放'},
+    player:{eye:[7.7,3.6,5.7],target:[-.2,1,0],fov:50,label:'04 / 侧向跟拍 · 你的招式'},
+    enemy:{eye:[6.7,3.8,7],target:[-.3,1,0],fov:51,label:'05 / 双方构图 · 逐击应对'},
+    ultimate:{eye:[6.4,2.3,4.7],target:[-.15,1,-.1],fov:53,label:'06 / 低机位 · 大招回响'}
+  };
+  class DuelScene {
+    constructor(canvas){
+      this.canvas=canvas;this.ctx=canvas.getContext('2d');this.geometry=[];this.key='';this.pose=SHOTS.command;this.from=this.pose;this.to=this.pose;this.start=0;
+      this.reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.build();
+    }
+    face(p,color,line){this.geometry.push({p,color,line});}
+    box(x,y,z,w,h,d,colors){
+      const v=[[x,y,z],[x+w,y,z],[x+w,y+h,z],[x,y+h,z],[x,y,z+d],[x+w,y,z+d],[x+w,y+h,z+d],[x,y+h,z+d]];
+      const c=colors||['#5b6960','#6d7868','#92947a','#435a53'];
+      [[0,1,2,3],[5,4,7,6],[3,2,6,7],[4,0,3,7],[1,5,6,2]].forEach((ids,i)=>this.face(ids.map(j=>v[j]),c[i%c.length],'rgba(24,40,35,.12)'));
+    }
+    build(){
+      const rand=n=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v);};
+      // Everything below is positioned in one world coordinate system.
+      for(let x=-12;x<12;x+=1.5)for(let z=-15;z<13;z+=1.5){
+        const n=(x+40)*17+(z+40)*11,light=Math.floor(rand(n)*15);
+        this.face([[x+.012,0,z+.012],[x+1.488,0,z+.012],[x+1.488,0,z+1.488],[x+.012,0,z+1.488]],'rgb('+(82+light)+','+(91+light)+','+(73+light)+')','rgba(202,197,154,.1)');
+        if(rand(n+1)>.65)this.face([[x+.2,.008,z+.3],[x+.7,.008,z+.5],[x+.6,.008,z+1.2]],'rgba(42,66,48,.24)');
+      }
+      // Raised terrace, long steps and an open, broken arcade.
+      this.box(-10,-.45,-12,20,.42,20,['#56665a','#3d5149','#6c7664']);
+      this.box(-6,0,-8,12,.2,1.2,['#737c69','#52635a','#a2a17e']);
+      this.box(-5.7,.2,-8.5,11.4,.25,.7,['#78816c','#56675a','#b1ad86']);
+      for(const x of [-5.3,5.3])for(const z of [-7.7,-2,3.8]){
+        const h=z===3.8?(x<0?3.5:1.8):z===-2?(x<0?4.7:3.1):6.1;
+        this.box(x-.58,0,z-.58,1.16,.3,1.16);
+        this.box(x-.35,.3,z-.35,.7,h,.7,['#7b8975','#596c62','#b4b18a','#4b6258']);
+        this.box(x-.48,h+.3,z-.48,.96,.24,.96);
+        this.box(x-.42,1.2,z-.42,.84,.14,.84,['#a3a184','#728372','#c9bd8f']);
+      }
+      for(const x of [-2.8,2.8]){
+        this.box(x-.4,.45,-8.2,.8,3.7,.8);
+        this.box(x-.6,4.1,-8.4,1.2,.3,1.2);
+      }
+      // Segmented arch, with a real opening through which the distant light is seen.
+      for(let i=0;i<15;i++){
+        const a=Math.PI*i/15,b=Math.PI*(i+1)/15;
+        const pts=[[3.12*Math.cos(a),4.1+3.12*Math.sin(a),-8],
+          [3.12*Math.cos(b),4.1+3.12*Math.sin(b),-8],
+          [2.35*Math.cos(b),4.1+2.35*Math.sin(b),-8],[2.35*Math.cos(a),4.1+2.35*Math.sin(a),-8]];
+        this.face(pts,i%2?'#778572':'#909780','rgba(36,57,46,.5)');
+        this.face(pts.map(p=>[p[0],p[1],p[2]-.5]),'#536b5f');
+        this.face([pts[0],pts[1],[pts[1][0],pts[1][1],-8.5],[pts[0][0],pts[0][1],-8.5]],'#b3b292');
+      }
+      for(let i=0;i<14;i++){
+        const x=(rand(i+33)-.5)*22,z=-10-rand(i+39)*10;
+        this.box(x,0,z,.6+rand(i)*1.4,2+rand(i+9)*7,.7,['#4e6a5e','#49645a','#7e8b72']);
+      }
+      for(let i=0;i<24;i++){
+        const x=(rand(i+82)-.5)*18,z=(rand(i+91)-.5)*17;
+        if(Math.abs(x)<3.4&&z>-4.5&&z<4.5)continue;
+        this.box(x,0,z,.3+rand(i+2)*.6,.2+rand(i+7)*.35,.3+rand(i+23)*.7,['#73816c','#4f6558','#a1a083']);
+      }
+      for(let i=0;i<200;i++){
+        const x=(rand(i+111)-.5)*22,z=(rand(i+21)-.5)*22,y=.012;
+        const d=.05+rand(i+2)*.08;
+        this.face([[x-d,y,z],[x,y,z+d*1.9],[x+d,y,z],[x,y,z-d]],['#bc9958','#9f9052','#d1ad65','#748052'][i%4]);
+      }
+      for(let i=0;i<90;i++){
+        const x=(rand(i+511)-.5)*21,z=(rand(i+901)-.5)*22;
+        if(Math.abs(x)<3.4&&z>-4.5&&z<4.5)continue;
+        this.face([[x-.06,0,z],[x-.12,.26+rand(i)*.25,z-.05],[x+.09,0,z]],i%2?'#6e865b':'#a1a06b');
+      }
+    }
+    camera(key,now,w,h){
+      // Portrait framing widens the lens, preserving both participants.
+      const base=SHOTS[key],goal={...base,fov:base.fov+(w/h<.95?16:0)};
+      const id=key+':'+(w/h<.95?'narrow':'wide');
+      if(this.key!==id){this.from=this.pose;this.to=goal;this.start=now;this.key=id;}
+      const t=this.reduced?1:smooth(clamp((now-this.start)/650,0,1));
+      this.pose={eye:this.to.eye.map((v,i)=>mix(this.from.eye[i],v,t)),target:this.to.target.map((v,i)=>mix(this.from.target[i],v,t)),fov:mix(this.from.fov,this.to.fov,t)};
+      return cameraFrame(this.pose);
+    }
+    render(game,menu){
+      const c=this.ctx,rect=this.canvas.getBoundingClientRect(),w=Math.max(1,rect.width),h=Math.max(1,rect.height),dpr=Math.min(devicePixelRatio||1,2);
+      if(this.canvas.width!==Math.round(w*dpr)||this.canvas.height!==Math.round(h*dpr)){this.canvas.width=Math.round(w*dpr);this.canvas.height=Math.round(h*dpr);}
+      c.setTransform(dpr,0,0,dpr,0,0);
+      const now=game?.now||0,a=game?.action;
+      const key=a?(a.kind==='ultimate'?'ultimate':a.actor==='enemy'?'enemy':'player'):menu?.page==='target'?(menu.pending?.target==='player'?'targetSelf':'targetEnemy'):menu?.page==='skills'||menu?.page==='items'?'skills':'command';
+      const f=this.camera(key,now,w,h),proj=p=>projectPoint(p,f,w,h);
+      this.w=w;this.h=h;this.now=now;
+      const sky=c.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#4e6c62');sky.addColorStop(.48,'#b4b294');sky.addColorStop(1,'#283f37');c.fillStyle=sky;c.fillRect(0,0,w,h);
+      const sun=proj([-1.8,7,-20])||{x:w*.5,y:h*.2},glow=c.createRadialGradient(sun.x,sun.y,10,sun.x,sun.y,w*.65);
+      glow.addColorStop(0,'rgba(255,232,161,.7)');glow.addColorStop(.25,'rgba(245,218,147,.28)');glow.addColorStop(1,'rgba(213,205,151,0)');c.fillStyle=glow;c.fillRect(0,0,w,h);
+      // Distant silhouettes are also projected, so orbiting reveals different layers.
+      for(let layer=0;layer<3;layer++){
+        const points=[];for(let i=0;i<=16;i++)points.push([-35+i*4.5,1.5+Math.sin(i*1.7+layer)*1.3+layer*1.3,-29+layer*4]);
+        points.push([37,-3,-29+layer*4],[-35,-3,-29+layer*4]);
+        this.polygon(points.map(proj).filter(Boolean),['#657e6b','#71836b','#879074'][layer]);
+      }
+      const objects=[],ground=[];
+      const baseFloor=[[-40,-.01,-40],[40,-.01,-40],[40,-.01,40],[-40,-.01,40]];
+      const clipped=(pts)=>{const out=[];for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],da=a.reduce((n,v,j)=>n+(v-f.eye[j])*f.forward[j],0),db=b.reduce((n,v,j)=>n+(v-f.eye[j])*f.forward[j],0);if(da>.16)out.push(a);if((da>.16)!==(db>.16)){const t=(.16-da)/(db-da);out.push(a.map((v,j)=>mix(v,b[j],t)));}}return out.map(proj).filter(Boolean);};
+      this.polygon(clipped(baseFloor),'#485646');
+      for(const g of this.geometry){
+        const p=clipped(g.p);if(!p.length)continue;
+        if(p.every(v=>v.x<0)||p.every(v=>v.x>w)||p.every(v=>v.y<0)||p.every(v=>v.y>h))continue;
+        (g.p.every(v=>v[1]<=.03)?ground:objects).push({layer:Math.max(...g.p.map(v=>v[1])),depth:p.reduce((n,v)=>n+v.depth,0)/p.length,draw:()=>this.polygon(p,g.color,g.line)});
+      }
+      let hp=[...PH],ep=[...PE];
+      const hit=a?.hits.find(v=>!v.done)||a?.hits.at(-1);
+      if(a&&hit){
+        const dt=now-hit.at;
+        const attackAmount=dt<0?smooth(clamp((dt+520)/520,0,1)):1-smooth(clamp(dt/360,0,1));
+        if(a.actor==='player'&&a.spec.damage){
+          const amount=attackAmount*(a.kind==='ultimate'?.75:.66);
+          hp=PH.map((v,i)=>mix(v,PE[i],amount));hp[1]=Math.sin(attackAmount*Math.PI)*.38;
+        }else if(a.actor==='enemy'){
+          ep=PE.map((v,i)=>mix(v,PH[i],attackAmount*.62));
+          if(hit.success&&hit.response==='dodge')hp=[PH[0]-.6*attackAmount,Math.sin(attackAmount*Math.PI)*.35,PH[2]+.48*attackAmount];
+        }
+      }
+      const addActor=(kind,pos,base)=>{
+        const p=proj(pos);if(!p)return;
+        const shadow=[];for(let i=0;i<24;i++){const ang=i*Math.PI/12;shadow.push(proj([pos[0]+Math.cos(ang)*.78,.02,pos[2]+Math.sin(ang)*.42]));}
+        if(shadow.every(Boolean))ground.push({layer:.02,depth:p.depth+.06,draw:()=>this.polygon(shadow,'rgba(10,27,24,.46)')});
+        objects.push({depth:p.depth,draw:()=>kind==='hero'?this.hero(p,pos,f,game):this.enemy(p,pos,game)});
+      };
+      addActor('hero',hp,PH);addActor('enemy',ep,PE);
+      // A thin ground rune fixes the two actors to the floor.
+      for(const pos of [PH,PE]){
+        const pts=[];for(let i=0;i<48;i++){const an=i*Math.PI/24;pts.push(proj([pos[0]+Math.cos(an),.025,pos[2]+Math.sin(an)]));}
+        if(pts.every(Boolean))ground.push({layer:.025,depth:proj(pos).depth+.07,draw:()=>{c.save();c.globalAlpha=.48;this.polygon(pts,null,'#b6c6a2');c.restore();}});
+      }
+      ground.sort((x,y)=>x.layer-y.layer||y.depth-x.depth);for(const obj of ground)obj.draw();
+      objects.sort((x,y)=>y.depth-x.depth);for(const obj of objects)obj.draw();
+      // Airborne motes travel at several depths, with perspective-scaled size.
+      for(let i=0;i<35;i++){
+        const z=-10+(i*3.7%18),x=-9+(i*2.61+now*.00013)%18,y=.7+(i*.71+now*.00007)%5;
+        const p=proj([x,y,z]);if(!p)continue;
+        c.fillStyle=i%3?'rgba(249,219,154,.55)':'rgba(211,236,207,.65)';c.beginPath();c.ellipse(p.x,p.y,Math.min(4,p.scale*.025),Math.min(2,p.scale*.012),i+now*.0002,0,Math.PI*2);c.fill();
+      }
+      const events=game?.events||[],e=[...events].reverse().find(v=>['damage','perfect','parry','dodge','heal','buff'].includes(v.kind));
+      if(e&&now-e.at<500){
+        const at=proj(e.target==='player'?[hp[0],.9,hp[2]]:[ep[0],1.3,ep[2]]);
+        if(at)this.impact(at,e,(now-e.at)/500);
+      }
+      if(a?.kind==='ultimate'){
+        c.fillStyle='rgba(4,17,18,.8)';const bar=Math.min(35,h*.045);c.fillRect(0,0,w,bar);c.fillRect(0,h-bar,w,bar);
+      }
+      const head=(pos,ht)=>proj([pos[0],ht,pos[2]]);
+      return {w,h,key,label:SHOTS[key].label,player:proj(hp),enemy:proj(ep),playerBase:proj(PH),enemyBase:proj(PE),playerHead:head(hp,1.85),enemyHead:head(ep,2.55),playerTarget:head(PH,.8),enemyTarget:head(PE,1.25)};
+    }
+    polygon(p,fill,stroke){
+      if(!p.length)return;const c=this.ctx;c.beginPath();c.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++)c.lineTo(p[i].x,p[i].y);c.closePath();
+      if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=1;c.stroke();}
+    }
+    ellipse(x,y,rx,ry,fill,stroke){
+      const c=this.ctx;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=.015;c.stroke();}
+    }
+    hero(p,pos,frame,game){
+      const c=this.ctx,s=p.scale,breathe=this.reduced?0:Math.sin(this.now*.002)*.018;
+      const look=[.616,0,-.788],view=[frame.eye[0]-pos[0],0,frame.eye[2]-pos[2]];
+      const facing=(look[0]*view[0]+look[2]*view[2])/Math.hypot(view[0],view[2]),back=facing<-.28,side=Math.abs(facing)<.6;
+      c.save();c.translate(p.x,p.y);c.scale(s,s);c.translate(0,-breathe);
+      if(game?.shield){c.shadowColor='#bcf1d7';c.shadowBlur=15;this.ellipse(0,-.9,.97,1.08,'rgba(149,231,202,.1)','#b8e7cc');c.shadowBlur=0;}
+      c.save();c.translate(-.25,-.45);c.rotate(-.2+Math.sin(this.now*.003)*.08);c.fillStyle='#486c65';c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(-.85,.12,-1.07,-.2);c.lineTo(-.9,.05);c.lineTo(-1.1,.13);c.quadraticCurveTo(-.6,.4,.2,.15);c.closePath();c.fill();c.restore();
+      const fur=c.createLinearGradient(-.5,-1.75,.5,0);fur.addColorStop(0,'#fff9e6');fur.addColorStop(.5,'#e9ebd9');fur.addColorStop(1,'#aebfb0');
+      c.beginPath();for(let i=0;i<=72;i++){const t=i/72*Math.PI*2,r=1+((i%2)?-.035:.035);const x=Math.cos(t)*.82*r,y=-.88+Math.sin(t)*.83*r;if(i===0)c.moveTo(x,y);else c.lineTo(x,y);}c.closePath();c.fillStyle=fur;c.fill();c.strokeStyle='#dce5cf';c.lineWidth=.025;c.stroke();
+      c.beginPath();c.moveTo(-.23,-1.63);c.quadraticCurveTo(-.14,-1.97,.05,-2.02);c.quadraticCurveTo(-.01,-1.83,.11,-1.76);c.quadraticCurveTo(.28,-1.94,.31,-1.96);c.quadraticCurveTo(.38,-1.69,.22,-1.59);c.fillStyle='#f4f1dc';c.fill();
+      c.beginPath();c.moveTo(-.71,-.53);c.quadraticCurveTo(.05,-.15,.71,-.58);c.lineTo(.64,-.34);c.quadraticCurveTo(0,.0,-.61,-.32);c.closePath();c.fillStyle='#416b61';c.fill();
+      c.beginPath();c.moveTo(-.61,-.46);c.quadraticCurveTo(.1,-.15,.65,-.49);c.strokeStyle='#a9bc9b';c.lineWidth=.035;c.stroke();
+      if(back){
+        this.ellipse(.18,-.35,.15,.14,'#a1b39a');
+        c.strokeStyle='rgba(120,145,126,.28)';c.lineWidth=.012;
+        for(let i=0;i<14;i++){const x=Math.sin(i*2.4)*.57,y=-.65-(i%4)*.22;c.beginPath();c.moveTo(x,y);c.lineTo(x+.06,y+.08);c.lineTo(x+.13,y+.025);c.stroke();}
+      }else{
+        const shift=side?.17:0;
+        this.ellipse(-.24+shift,-1.0,.046,.075,'#233e37');this.ellipse(.23+shift,-1.0,.046,.075,'#233e37');
+        this.ellipse(-.25+shift,-1.026,.013,.022,'#f6fff0');this.ellipse(.22+shift,-1.026,.013,.022,'#f6fff0');
+        this.ellipse(-.4+shift,-.84,.10,.04,'rgba(224,163,140,.4)');this.ellipse(.38+shift,-.84,.10,.04,'rgba(224,163,140,.4)');
+        c.beginPath();c.moveTo(-.055+shift,-.87);c.quadraticCurveTo(shift,-.82,.055+shift,-.87);c.strokeStyle='#5b7567';c.lineWidth=.018;c.stroke();
+      }
+      c.restore();
+    }
+    enemy(p,pos,game){
+      const c=this.ctx,s=p.scale,a=game?.action,h=a?.actor==='enemy'?(a.hits.find(v=>!v.done)||a.hits.at(-1)):null;
+      const red=!!h?.red,charge=h?clamp((this.now-h.at+950)/950,0,1):0,dt=h?this.now-h.at:-9999;
+      c.save();c.translate(p.x,p.y);c.scale(s,s);
+      if(red){c.shadowColor='#ff695b';c.shadowBlur=24;}
+      const cape=c.createLinearGradient(-.6,-2.2,.6,0);cape.addColorStop(0,'#637970');cape.addColorStop(.3,'#263f3a');cape.addColorStop(1,'#1c2e2c');
+      c.fillStyle=cape;c.beginPath();c.moveTo(-.3,-2.25);c.lineTo(-.61,-1.68);c.quadraticCurveTo(-.51,-.7,-.88,-.05);c.lineTo(-.51,-.2);c.lineTo(-.21,-.04);c.lineTo(.05,-.16);c.lineTo(.35,-.03);c.lineTo(.82,-.2);c.quadraticCurveTo(.44,-1.03,.51,-1.72);c.lineTo(.3,-2.25);c.closePath();c.fill();
+      c.shadowBlur=0;c.strokeStyle='#8c9d83';c.lineWidth=.025;c.beginPath();c.moveTo(-.3,-2.1);c.lineTo(-.38,-1.2);c.lineTo(-.67,-.25);c.moveTo(.29,-2.13);c.lineTo(.35,-1.2);c.lineTo(.61,-.23);c.stroke();
+      c.fillStyle='#546f63';c.beginPath();c.moveTo(-.42,-1.95);c.lineTo(0,-2.18);c.lineTo(.44,-1.91);c.lineTo(.24,-1.16);c.lineTo(-.27,-1.16);c.closePath();c.fill();
+      c.fillStyle='#b7b28c';c.beginPath();c.moveTo(-.24,-2.27);c.lineTo(-.2,-2.57);c.lineTo(.16,-2.61);c.lineTo(.29,-2.3);c.lineTo(.08,-2.05);c.lineTo(-.12,-2.11);c.closePath();c.fill();
+      c.strokeStyle='#29463f';c.lineWidth=.035;c.beginPath();c.moveTo(-.18,-2.42);c.lineTo(-.03,-2.35);c.lineTo(.19,-2.43);c.moveTo(.01,-2.36);c.lineTo(.05,-2.15);c.stroke();
+      c.fillStyle=red?'#ff8469':'#b8edcd';this.ellipse(-.09,-2.39,.045,.017,c.fillStyle);this.ellipse(.13,-2.40,.04,.017,c.fillStyle);
+      c.strokeStyle=red?'#cf6554':'#9da780';c.lineWidth=.04;c.beginPath();c.moveTo(-.16,-1.8);c.lineTo(.03,-1.95);c.lineTo(.21,-1.77);c.lineTo(.03,-1.58);c.closePath();c.stroke();
+      // Windup raises the blade; its fall and trail share the hit's timestamp.
+      c.save();c.translate(.39,-1.73);c.rotate(dt>=0&&dt<300?-.9+dt*.003:charge*1.65-.4);
+      c.strokeStyle='#637e6c';c.lineWidth=.16;c.lineCap='round';c.beginPath();c.moveTo(0,0);c.lineTo(.3,.3);c.lineTo(.53,.14);c.stroke();
+      c.translate(.53,.14);c.rotate(-.3);c.fillStyle='#b5b68e';c.fillRect(-.18,-.09,.36,.07);c.fillStyle='#243e36';c.fillRect(-.04,-.06,.08,.26);
+      const metal=c.createLinearGradient(-.08,-1.3,.1,0);metal.addColorStop(0,red?'#ffac88':'#e6e6c5');metal.addColorStop(.45,red?'#be5947':'#b7c0a1');metal.addColorStop(1,'#536a60');c.fillStyle=metal;
+      c.beginPath();c.moveTo(-.055,-.08);c.lineTo(-.08,-1.05);c.lineTo(.02,-1.43);c.lineTo(.11,-1.07);c.lineTo(.07,-.08);c.closePath();c.fill();c.restore();
+      if(h&&charge>.5){c.globalAlpha=(charge-.5)*1.5;c.strokeStyle=red?'#ff8a72':'#dfd9a1';c.lineWidth=.018;c.beginPath();c.arc(.15,-1.4,1.15,-2.6,-.4);c.stroke();c.globalAlpha=1;}
+      c.restore();
+    }
+    impact(p,e,t){
+      const c=this.ctx,color=['dodge','parry','heal','buff'].includes(e.kind)?'#b9f5d9':e.kind==='perfect'?'#ffdf94':'#f8efd3';
+      c.save();c.translate(p.x,p.y);c.globalAlpha=1-t;c.strokeStyle=color;c.fillStyle=color;c.lineWidth=2*(1-t)+1;
+      const r=(.15+t*.9)*p.scale;
+      c.beginPath();c.ellipse(0,0,r,r*.65,-.3,0,Math.PI*2);c.stroke();
+      for(let i=0;i<9;i++){const a=i*2.4;c.beginPath();c.moveTo(Math.cos(a)*r*.6,Math.sin(a)*r*.6);c.lineTo(Math.cos(a)*r*1.5,Math.sin(a)*r*1.5);c.stroke();}
+      c.restore();
+    }
+  }
+  globalThis.DuelScene=DuelScene;
+})();
+</script>
+<script id="duel-ui">
+'use strict';
+(() => {
+  const {Duel,BattleMenu,SKILLS,ULTS}=HanserDuel;
+  const $=id=>document.getElementById(id),text=(id,v)=>{if($(id).textContent!==String(v))$(id).textContent=v;},show=(id,v)=>{$(id).hidden=!v;};
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),held=new Set(),scene=new DuelScene($('world'));
+  let loadout=['strike','flurry','expose','heal'],ultimate='surge',game=null,menu=null;
+  let lastWall=performance.now(),panelKey='',orderKey='',seenEvent=0,pauseKind='',floatEvent=null,anchors=null;
+  function setup(){
+    $('candidates').innerHTML=Object.entries(SKILLS).map(([id,s])=>'<button class="candidate '+(loadout.includes(id)?'selected':'')+'" data-equip="'+id+'" role="checkbox" aria-checked="'+loadout.includes(id)+'" aria-label="'+s.name+'，'+s.cost+' 技力，'+s.desc+'"><span class="pick">'+(loadout.includes(id)?loadout.indexOf(id)+1:'+')+'</span><span class="skill-icon">'+s.icon+'</span><strong>'+s.name+'</strong><small>'+s.desc+'</small><div class="origin">'+s.source+' · '+s.cost+' 技力</div></button>').join('');
+    $('ult-options').innerHTML=Object.entries(ULTS).map(([id,s])=>'<button class="ult-option '+(ultimate===id?'selected':'')+'" data-ult="'+id+'" role="radio" aria-checked="'+(ultimate===id)+'" aria-label="'+s.name+'，'+s.cost+' 能量，'+s.desc+'"><b>'+s.cost+' 能量</b><strong>'+s.icon+' '+s.name+'</strong><small>'+s.desc+'</small></button>').join('');
+    $('ult-options').setAttribute('role','radiogroup');$('ult-options').setAttribute('aria-label','装备大招');
+    text('selected-count',loadout.length+' / 4 槽位');$('start').disabled=loadout.length!==4;
+  }
+  function start(){
+    if(loadout.length!==4)return;
+    game=new Duel({loadout,ultimate});menu=new BattleMenu(game);panelKey='';orderKey='';seenEvent=0;floatEvent=null;held.clear();
+    for(const id of ['setup','result-overlay','pause-overlay','help-overlay'])show(id,false);
+    $('battle-surface').inert=false;$('pause-button').disabled=false;scene.key='';scene.pose=scene.to=scene.from={eye:[-.2,2.8,7.7],target:[0,.9,-.9],fov:53};
+    lastWall=performance.now();render();focusMenu();
+  }
+  function focusMenu(){const b=$('menu-options').querySelector('.selected:not(:disabled)')||$('menu-options').querySelector('button:not(:disabled)');b?.focus({preventScroll:true});}
+  function pause(reason='战斗时钟与镜头已暂停，当前判定窗口保留。'){
+    if(!game||game.result||game.paused)return;
+    game.pause();held.clear();text('pause-reason',reason);show('pause-overlay',true);$('battle-surface').inert=true;$('resume').focus();
+  }
+  function resume(){
+    if(!game||game.result)return;
+    game.resume();held.clear();lastWall=performance.now();show('pause-overlay',false);$('battle-surface').inert=false;render();
+    if(game.mode==='choose'&&menu.page!=='target')focusMenu();else $('pause-button').focus({preventScroll:true});
+  }
+  function sync(input){
+    const wall=performance.now(),delta=Math.max(0,wall-lastWall);lastWall=wall;
+    if(!game||game.paused||game.result)return;
+    if(delta>250&&game.mode==='action'){pause('检测到页面切换或长时间卡顿。动作已暂停，准备好后继续。');return;}
+    game.advanceTo(game.now+delta,input);render();
+  }
+  function select(id){sync();if(!game||game.paused||game.result)return;menu.activate(id);render();if(menu.page==='target')$('confirm-target').focus({preventScroll:true});}
+  function back(){sync();if(!game||game.paused||game.result)return;if(menu.back()){render();focusMenu();}}
+  function quickUltimate(){
+    sync();if(!game||game.paused||game.result)return;
+    if(game.mode==='choose'){
+      if(game.energy<ULTS[game.ultimate].cost)return;
+      menu.page='main';menu.pending=null;menu.activate('ultimate');
+    }else game.requestUltimate();
+    render();if(menu.page==='target')$('confirm-target').focus({preventScroll:true});
+  }
+  function place(node,x,y){node.style.left=Math.round(x)+'px';node.style.top=Math.round(y)+'px';}
+  function renderMenu(){
+    const choosing=game.mode==='choose',target=choosing&&menu.page==='target';
+    show('battle-menu',choosing&&!target);show('target-card',target);show('target-hit',target);
+    if(target){
+      const p=menu.pending;text('target-kicker',p.target==='player'?'SELECT SELF / 目标：毛怪':'SELECT TARGET / 目标：试炼残影');
+      text('target-title',p.name);text('target-desc',p.desc);
+      text('target-meta',p.kind==='skill'?'消耗 '+SKILLS[p.id].cost+' 技力 · 占用本次行动':p.kind==='ultimate'?'消耗 '+ULTS[game.ultimate].cost+' 能量 · 额外行动':p.kind==='item'?'剩余 '+game.items+' 份 · 占用本次行动':'普攻 · 占用本次行动');
+      $('confirm-target').classList.toggle('selected',menu.index===0);$('cancel-target').classList.toggle('selected',menu.index===1);
+      const base=p.target==='player'?anchors.player:anchors.enemy,head=p.target==='player'?anchors.playerHead:anchors.enemyHead;
+      if(base&&head){
+        const width=clamp(base.scale*1.8,100,anchors.w*.40),left=clamp(base.x-width/2,12,anchors.w-width-12),top=clamp(head.y-12,145,anchors.h-200);
+        place($('target-hit'),left,top);$('target-hit').style.width=width+'px';$('target-hit').style.height=clamp(base.y-top+8,100,anchors.h-top-90)+'px';
+      }
+      return;
+    }
+    if(!choosing)return;
+    const opts=menu.options(),sub=menu.page!=='main',key=menu.page+'|'+opts.map(o=>o.id+o.enabled+o.hint).join('|');
+    $('battle-menu').classList.toggle('submenu',sub);
+    text('menu-kicker',menu.page==='skills'?'SKILLS / 装备的回响':menu.page==='items'?'ITEMS / 随身物品':'YOUR TURN / 选择行动');
+    show('menu-back',sub);text('menu-back','返回 Esc');
+    if(panelKey!==key){
+      panelKey=key;
+      $('menu-options').innerHTML=opts.map((o,i)=>'<button class="ribbon" data-menu="'+o.id+'" '+(o.enabled?'':'disabled')+'><kbd>'+(i+1)+'</kbd><span class="menu-copy"><strong>'+o.name+'</strong><small>'+o.hint+'</small></span>'+(o.cost!==undefined?'<span class="cost">'+o.cost+' ◆</span>':'')+'</button>').join('');
+    }
+    for(const [i,b] of [...$('menu-options').children].entries()){b.classList.toggle('selected',menu.index===i);b.setAttribute('aria-current',menu.index===i?'true':'false');}
+    const p=anchors.playerBase,w=$('battle-menu').offsetWidth,mh=$('battle-menu').offsetHeight;
+    if(p){
+      // The menu travels with the shot and settles alongside the foreground actor.
+      const x=clamp(p.x+p.scale*.68,anchors.w*.36,anchors.w-w-48);
+      const y=clamp(p.y-p.scale*1.38,anchors.w<650?210:215,anchors.h-mh-(anchors.w<650?185:75));
+      place($('battle-menu'),x,y);
+    }
+  }
+  function renderQTE(){
+    const a=game.action,h=a?.hits.find(v=>!v.done),enemy=a?.actor==='enemy',needed=!!h&&(enemy||a.spec.timing);
+    show('qte',needed);
+    if(!needed)return;
+    const i=a.hits.indexOf(h),duration=h.at-h.open,progress=clamp((game.now-h.open)/duration,0,1),remaining=h.at-game.now;
+    const waiting=game.now<h.open,done=h.attempted;
+    text('qte-title',(enemy?(h.red?'赤芒 · 只能闪避':'读招 · 闪避 / 精准格挡'):'共鸣 · 可选卡点')+'  '+(i+1)+' / '+a.hits.length);
+    text('cue-status',waiting?'下一击即将开始':done?(h.success?'时机命中':h.red&&h.response==='parry'?'红光无法格挡':'过早 · 留意下一击'):remaining<=(enemy?game.config.dodgeWindow:game.config.timingWindow)?(enemy?'现在闪避 · 内环重合时可格挡':'现在共鸣'):'光圈收向内环时按下');
+    $('qte-meter').setAttribute('aria-valuenow',String(Math.round(progress*100)));
+    $('qte-meter').dataset.hit=a.id+':'+i;$('qte-meter').dataset.attempted=String(done);$('qte-meter').dataset.actor=a.actor;$('qte-meter').dataset.red=String(h.red);
+    for(const type of ['dodge','parry','timing']){
+      const use=enemy?type!=='timing':type==='timing',wrap=$(type+'-wrap');show(type+'-wrap',use);
+      if(!use)continue;
+      const window=type==='dodge'?game.config.dodgeWindow:type==='parry'?game.config.parryWindow:game.config.timingWindow;
+      wrap.classList.toggle('ready',!done&&remaining<=window&&!waiting&&!(type==='parry'&&h.red));
+      wrap.classList.toggle('precise',type==='parry');wrap.classList.toggle('red',h.red&&type==='dodge');
+      wrap.querySelector('.moving-ring').setAttribute('r',String(65-22*progress));
+      $(type+'-button').disabled=done||waiting||game.paused||!!game.result;
+      if(type==='parry'){wrap.querySelector('small').textContent=h.red?'红光无效':'格挡';$('parry-button').title=h.red?'红光无法格挡，请闪避；错误应对仍会消耗本击机会。':'精准格挡 K';}
+    }
+    const dots=a.hits.map((v,j)=>'<i class="beat '+(v.done?(v.success?'done':'fail'):j===i?'active':'')+'"></i>').join('');
+    if($('beat-dots').innerHTML!==dots)$('beat-dots').innerHTML=dots;
+    // A fixed world-space anchor in this shot prevents the mouse target from chasing the lunge.
+    const anchor=enemy?anchors.playerTarget:anchors.enemyTarget;
+    if(anchor)place($('qte'),clamp(anchor.x+(!enemy?-25:95),155,anchors.w-155),clamp(anchor.y+70,335,anchors.h-250));
+  }
+  function render(){
+    if(!game){anchors=scene.render(null,null);return;}
+    menu.sync();anchors=scene.render(game,menu);text('shot-label',anchors.label);
+    const head=anchors.enemyHead;
+    if(head)place($('enemy-health'),clamp(head.x,100,anchors.w-100),clamp(head.y-20,180,anchors.h*.52));
+    for(const side of ['player','enemy']){text(side+'-hp-text',game[side].hp+' / '+game[side].maxHP);$(side+'-hp-fill').style.width=(game[side].hp/game[side].maxHP*100)+'%';}
+    const tp=Array.from({length:game.config.maxTP},(_,i)=>'<i class="'+(i<game.tp?'on':'')+'"></i>').join('')+'<b>'+game.tp+' / '+game.config.maxTP+'</b>';
+    if($('tp').innerHTML!==tp)$('tp').innerHTML=tp;
+    $('tp').setAttribute('aria-label','技力 '+game.tp+'，上限 '+game.config.maxTP);
+    const cost=ULTS[game.ultimate].cost,ready=game.energy>=cost;
+    text('energy-value',game.energy+' / '+cost);$('energy-fill').style.width=game.energy/cost*100+'%';
+    $('ult-shortcut').disabled=!ready||game.pendingUltimate||game.action?.kind==='ultimate'||game.paused||!!game.result;
+    $('ult-shortcut').classList.toggle('ready',ready);text('ult-label',game.pendingUltimate?'已预约 · 完整行动后释放':ULTS[game.ultimate].name+(ready?' · 就绪':''));
+    const buffs=(game.shield?'<span class="status">护盾 '+game.shield+'</span>':'')+(game.empowered?'<span class="status">蓄光 ×1.4</span>':'');
+    if($('player-status').innerHTML!==buffs)$('player-status').innerHTML=buffs;
+    const debuffs=game.exposed?'<span class="status">破绽 ×1.35</span>':'';
+    if($('enemy-status').innerHTML!==debuffs)$('enemy-status').innerHTML=debuffs;
+    const a=game.action,h=a?.hits.find(v=>!v.done),order=game.forecast(7),okey=[a?.kind,game.pendingUltimate,...order.map(x=>x.actor+':'+x.at)].join('|');
+    if(orderKey!==okey){
+      orderKey=okey;const chips=order.map((x,i)=>'<span class="order-chip '+x.actor+(i===0&&a?.kind!=='ultimate'?' current':'')+'">'+(x.actor==='player'?'● 毛怪':'◇ 残影')+(i===0?' · 正常行动':'')+'</span>');
+      if(a?.kind==='ultimate')chips.unshift('<span class="order-chip ultimate current">✧ 大招 · 插入</span>');
+      else if(game.pendingUltimate)chips.splice(1,0,'<span class="order-chip ultimate">✧ 大招 · 已预约</span>');
+      $('order-track').innerHTML=chips.join('<span class="order-arrow">›</span>');
+    }
+    show('action-caption',!!a);
+    text('action-eyebrow',a?.kind==='ultimate'?'EXTRA ACTION / 额外行动':a?.actor==='enemy'?'ENEMY TURN / 敌方行动':'YOUR ACTION / 正在出招');
+    text('action-title',a?.spec.name||'');
+    text('action-subtitle',a?.actor==='enemy'?a.hits.length+' 击 · '+(h?.red?'这一击不能格挡':'每一击都可重新应对'):a?.kind==='ultimate'?'额外行动 · 正常行动保留':a?.spec.timing?'卡点可选 · 基础效果保底':'无需卡点 · 完整执行效果');
+    text('toast',game.pendingUltimate?'大招已预约，等待整组行动结束。':menu.page==='target'?'点击目标或按 Enter 施放；返回不消耗资源。':a?.actor==='enemy'?'每击只接受一次应对。失误后仍可应对下一击。':a?.spec.timing?'点击共鸣或按空格；不按也会造成基础伤害。':a?'镜头跟随招式，完成后回到选择。':'在角色身旁选择行动。鼠标与键盘可随时混用。');
+    renderMenu();renderQTE();
+    for(const e of game.events.filter(v=>v.id>seenEvent)){
+      seenEvent=e.id;
+      if(['damage','perfect','parry','dodge','heal','buff'].includes(e.kind)){floatEvent=e;text('announcer',e.text+(e.value?' '+e.value:''));}
+    }
+    show('hit-float',!!floatEvent&&game.now-floatEvent.at<850);
+    if(floatEvent&&game.now-floatEvent.at<850){
+      const e=floatEvent,node=$('hit-float'),p=e.target==='player'?anchors.playerTarget:anchors.enemyTarget,t=(game.now-e.at)/850;
+      node.style.color=['heal','parry','dodge'].includes(e.kind)?'var(--mint)':e.kind==='perfect'?'var(--gold)':'var(--paper)';
+      const html=(e.value?(e.kind==='heal'?'+':'')+e.value:e.kind==='parry'?'PARRY':e.kind==='dodge'?'DODGE':'✧')+'<small>'+e.text+'</small>';
+      if(node.innerHTML!==html)node.innerHTML=html;node.style.opacity=String(1-t*t);
+      if(p)place(node,clamp(p.x,80,anchors.w-80),clamp(p.y-50-t*35,210,anchors.h-230));
+    }
+    if(game.result&&$('result-overlay').hidden){
+      const won=game.result==='victory';text('result-title',won?'回响未息':'稍息，再出发');text('result-eyebrow',won?'TRIAL COMPLETE / 战斗胜利':'TRY AGAIN / 本次战败');text('result-icon',won?'✧':'◇');
+      text('result-copy',won?'残影消散，小小的勇气又向前了一步。':'没关系，下一次仍有新的机会。试着用闪避读节奏，或带上治疗与护盾。');
+      $('result-stats').innerHTML='<div><b>'+game.stats.dodges+'</b><span>闪避成功</span></div><div><b>'+game.stats.parries+'</b><span>精准格挡</span></div><div><b>'+game.stats.timings+'</b><span>技能卡点</span></div>';
+      show('battle-menu',false);show('target-card',false);show('target-hit',false);show('qte',false);show('result-overlay',true);$('battle-surface').inert=true;$('retry').focus();
+    }
+  }
+  $('candidates').addEventListener('click',e=>{
+    const b=e.target.closest('[data-equip]');if(!b)return;const id=b.dataset.equip;
+    if(loadout.includes(id))loadout=loadout.filter(x=>x!==id);else if(loadout.length<4)loadout.push(id);
+    else{text('setup-error','四个槽位已满。先取消一个已选技能，再选择新的能力。');return;}
+    text('setup-error',loadout.length===4?'':'还需选择 '+(4-loadout.length)+' 个技能。');setup();document.querySelector('[data-equip="'+id+'"]').focus();
+  });
+  $('ult-options').addEventListener('click',e=>{const b=e.target.closest('[data-ult]');if(b){ultimate=b.dataset.ult;setup();document.querySelector('[data-ult="'+ultimate+'"]').focus();}});
+  $('start').onclick=start;$('retry').onclick=start;
+  $('reconfigure').onclick=()=>{game=null;menu=null;show('result-overlay',false);show('setup',true);$('pause-button').disabled=true;setup();$('start').focus();};
+  $('menu-options').addEventListener('click',e=>{const b=e.target.closest('[data-menu]');if(b&&!b.disabled)select(b.dataset.menu);});
+  $('menu-options').addEventListener('pointerover',e=>{const b=e.target.closest('[data-menu]');if(b&&!b.disabled&&menu?.available()){menu.index=menu.options().findIndex(o=>o.id===b.dataset.menu);render();}});
+  $('menu-options').addEventListener('focusin',e=>{const b=e.target.closest('[data-menu]');if(b&&!b.disabled&&menu?.available()){menu.index=menu.options().findIndex(o=>o.id===b.dataset.menu);}});
+  $('menu-back').onclick=back;$('cancel-target').onclick=back;
+  const confirm=()=>{sync();if(!game||game.paused||game.result)return;menu.confirm();render();};
+  $('confirm-target').onclick=confirm;$('target-hit').onclick=confirm;$('ult-shortcut').onclick=quickUltimate;
+  for(const type of ['dodge','parry','timing']){
+    // Pointer input is timestamped on press, not after release. Keyboard activation uses click.
+    $(type+'-button').addEventListener('pointerdown',e=>{if(e.button!==0||e.currentTarget.disabled)return;e.preventDefault();sync(type);});
+    $(type+'-button').addEventListener('click',e=>{if(e.detail===0)sync(type);});
+  }
+  $('pause-button').onclick=()=>pause();$('resume').onclick=resume;
+  $('help-button').onclick=()=>{pauseKind=game?.paused?'paused':'running';if(game&&!game.result)game.pause();held.clear();show('help-overlay',true);$('battle-surface').inert=true;$('close-help').focus();};
+  $('close-help').onclick=()=>{show('help-overlay',false);if(game&&!game.result&&pauseKind==='running'){game.resume();lastWall=performance.now();}$('battle-surface').inert=!$('setup').hidden||!$('pause-overlay').hidden||!$('result-overlay').hidden;$('help-button').focus();};
+  document.addEventListener('keydown',e=>{
+    const modal=[...document.querySelectorAll('.overlay')].find(x=>!x.hidden),key=e.code;
+    if(key==='Tab'&&modal){
+      const all=[...modal.querySelectorAll('button:not(:disabled),[tabindex="0"]')],first=all[0],last=all.at(-1);
+      if(e.shiftKey&&(document.activeElement===first||!modal.contains(document.activeElement))){e.preventDefault();last?.focus();}
+      else if(!e.shiftKey&&(document.activeElement===last||!modal.contains(document.activeElement))){e.preventDefault();first?.focus();}
+    }
+    if(e.repeat||held.has(key)){if(['Space','Enter','KeyJ','KeyK','KeyR','Escape'].includes(key))e.preventDefault();return;}
+    held.add(key);
+    if(key==='Escape'){
+      e.preventDefault();
+      if(!$('help-overlay').hidden)$('close-help').click();else if(!$('pause-overlay').hidden)resume();
+      else if(game&&!game.result&&!modal){sync();if(!menu.back())pause();else{render();focusMenu();}}
+      return;
+    }
+    if(modal||!game||game.result||game.paused)return;
+    const response={KeyJ:'dodge',KeyK:'parry',Space:'timing'}[key];
+    if(response&&game.mode==='action'){e.preventDefault();sync(response);return;}
+    if(key==='KeyR'){e.preventDefault();quickUltimate();return;}
+    if(game.mode!=='choose')return;
+    if(['ArrowUp','ArrowDown','KeyW','KeyS'].includes(key)){
+      e.preventDefault();sync();menu.move(key==='ArrowUp'||key==='KeyW'?-1:1);render();
+      if(menu.page==='target')$(menu.index===0?'confirm-target':'cancel-target').focus({preventScroll:true});else focusMenu();
+    }else if(key==='Enter'){
+      // Native buttons outside the choice list retain normal Enter activation.
+      const active=document.activeElement;
+      if(['pause-button','help-button','ult-shortcut','menu-back','cancel-target','confirm-target','target-hit'].includes(active?.id))return;
+      e.preventDefault();select();
+    }else if(['Digit1','Digit2','Digit3','Digit4'].includes(key)){
+      e.preventDefault();const o=menu.options()[Number(key.slice(-1))-1];if(o)select(o.id);
+    }
+  });
+  document.addEventListener('keyup',e=>held.delete(e.code));
+  window.addEventListener('blur',()=>{held.clear();pause('页面已失去焦点。战斗时钟暂停，准备好后继续。');});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){held.clear();pause('页面已隐藏。战斗时钟暂停，返回后继续。');}});
+  window.addEventListener('resize',render);
+  function frame(){sync();requestAnimationFrame(frame);}
+  setup();$('battle-surface').inert=true;$('start').focus();render();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
