@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#263b4c">
+  <title>憨之轨迹 · 序章：归来</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="game" aria-label="憨之轨迹序章">
+  <canvas id="world" aria-label="小镇地图。WASD 或方向键移动，E 或 Enter 调查；也可点击地面移动、点击人物对话。"></canvas>
+  <canvas id="battle-world" hidden aria-label="一对一战场"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header id="explore-hud" hidden>
+    <div class="location"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-7 7-12A7 7 0 0 0 5 9c0 5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg><div><strong id="location-name">归乡路</strong><small id="chapter-label">序章 · 归来</small></div></div>
+    <div class="hud-actions"><button id="sound-button" class="quiet" aria-pressed="false">声音：关</button><button id="journal-button" class="quiet">旅途 <kbd>M</kbd></button><button id="pause-button" class="quiet">暂停 <kbd>Esc</kbd></button></div>
+    <div class="objective"><span>此刻</span><p id="objective"></p></div>
+  </header>
+  <div id="area-banner" class="area-banner" hidden></div>
+  <div id="toast" role="status" hidden></div>
+  <div id="interact-hint" hidden><button id="interact-button"><kbd>E</kbd><span id="interact-label">调查</span></button></div>
+  <div id="walk-help" class="walk-help" hidden><span><kbd>W A S D</kbd> / 方向键 · 行走</span><span>点击地面 · 前往</span><span><kbd>E</kbd> · 调查</span></div>
+  <section id="dialogue" class="dialogue" hidden aria-label="剧情对话" aria-live="polite">
+    <div class="portrait-wrap"><canvas id="portrait" width="64" height="72"></canvas><span id="speaker"></span></div>
+    <div class="dialogue-body"><p id="dialogue-text"></p><div id="choices" hidden></div><div class="dialogue-footer"><span id="dialogue-count"></span><button id="next-dialogue">继续 <kbd>Enter</kbd><span aria-hidden="true">▾</span></button></div></div>
+  </section>
+  <section id="title-screen" class="title-screen">
+    <div class="title-copy"><div class="title-rule"></div><h1>憨之轨迹</h1><p class="english-title">TRAILS OF HANSER</p><p class="chapter-title">序章<span>归来</span></p><p class="title-description">你带着一路的故事回到小镇。<br>这里，却已经很久没有人回应。</p><div class="title-actions"><button id="new-game" class="primary">开始旅途 <span>→</span></button><button id="continue-game" hidden>继续旅途</button></div><p class="title-note">约 10–15 分钟 · 键盘 / 鼠标操作<br>非官方同人作品 · HTML 可玩序章</p></div>
+  </section>
+  <section id="battle-hud" hidden aria-label="战斗操作">
+    <div class="battle-heading"><span id="battle-name"></span><button id="battle-pause" class="quiet">暂停 <kbd>Esc</kbd></button></div>
+    <div class="enemy-status"><strong id="enemy-name"></strong><div class="hp-track"><i id="enemy-hp"></i></div><span id="enemy-hp-text"></span></div>
+    <div id="order" class="turn-order"></div>
+    <aside id="tutorial-guide" class="tutorial-guide" hidden aria-label="首战教学" aria-live="polite">
+      <span id="tutorial-progress"></span><h2 id="tutorial-title"></h2><p id="tutorial-text"></p><p id="tutorial-note" class="tutorial-note"></p>
+    </aside>
+    <div id="battle-caption" class="battle-caption"></div>
+    <div id="battle-menu" class="battle-menu"><h2 id="menu-title">毛怪的行动</h2><p id="target-desc" hidden></p><div id="battle-options"></div><button id="battle-back" class="menu-back" hidden>返回 <kbd>Esc</kbd></button></div>
+    <div id="response" class="response" hidden><p id="response-label"></p><div class="timing-track"><i id="timing-window"></i><b id="timing-marker"></b></div><div class="response-buttons"><button id="dodge">闪避 <kbd>J</kbd></button><button id="parry">格挡 <kbd>K</kbd></button><button id="resonate">共鸣 <kbd>Space</kbd></button></div><small id="response-help"></small></div>
+    <div class="player-status"><strong>毛怪 <span>满穗 · 拟态</span></strong><div class="hp-track"><i id="player-hp"></i></div><div class="stat-line"><span id="player-hp-text"></span><span id="player-tp"></span></div><button id="ultimate-button"><span id="ultimate-label"></span><kbd>R</kbd></button><small id="shield-text"></small></div>
+    <div id="combat-feedback" role="status"></div>
+  </section>
+  <section id="panel" class="panel-backdrop" hidden><div class="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title"><h2 id="panel-title"></h2><div id="panel-content"></div><div id="panel-actions"></div></div></section>
+  <section id="ending" class="ending" hidden><div class="ending-copy"><p class="ending-line">“我想先找到她。把外面的事情告诉她。”</p><h1>归来</h1><p>序章 · 完</p><div class="ending-rule"></div><p class="ending-text">满穗的声音从魔导盘里传来。<br>“好。”<br><br>毛怪重新背好行李，朝着憨塔迈出了第一步。</p><p id="ending-stats"></p><button id="replay" class="primary">重温序章</button><button id="ending-journal" class="quiet">翻开旅途记录</button><small>下一段旅途，始于憨塔。</small></div></section>
+  <div id="fade" class="fade" aria-hidden="true"></div>
+  <noscript>请启用 JavaScript 后打开序章。</noscript>
+</main>
+<script src="story.js"></script><script src="world.js"></script><script src="duel-core.js"></script><script src="duel-scene.js"></script><script src="battle.js"></script><script src="game.js"></script>
+</body>
+</html>

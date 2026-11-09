@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-02",
+  "url": "http://127.0.0.1:8083/",
+  "firstBattle": {
+    "input": "keyboard",
+    "result": "victory",
+    "hp": 70,
+    "actions": 6,
+    "dodges": 5,
+    "ultimate": true
+  },
+  "secondBattleDefeat": {
+    "result": "defeat",
+    "hp": 0,
+    "enemyHp": 154
+  },
+  "checks": {
+    "mousePathfinding": true,
+    "keyboardMovement": true,
+    "dialogueCheckpointReload": true,
+    "investigationsPersistAfterReload": true,
+    "repeatedInvestigationCount": 1,
+    "optionalPoster": true,
+    "loadoutRejectsThreeSkills": true,
+    "narrowDialogueNoOverflow": true,
+    "retryReset": {
+      "hp": 120,
+      "tp": 3,
+      "enemyHp": 224
+    },
+    "purificationCheckpointReload": {
+      "cameraX": "152",
+      "cameraY": "20.389999999999986",
+      "dialogue": "purified",
+      "dialogueIndex": "0",
+      "map": "town",
+      "mode": "dialogue",
+      "panel": "",
+      "phase": "purification",
+      "scale": "1.6494845360824741",
+      "x": "22.500",
+      "y": "10.500"
+    },
+    "journalComplete": true
+  },
+  "secondBattleVictory": {
+    "input": "mouse",
+    "result": "victory",
+    "hp": 95,
+    "actions": 8,
+    "dodges": 13,
+    "ultimate": true
+  },
+  "ending": {
+    "cameraX": "152",
+    "cameraY": "3.8757457847958733e-59",
+    "dialogue": "",
+    "dialogueIndex": "-1",
+    "map": "town",
+    "mode": "complete",
+    "panel": "",
+    "phase": "complete",
+    "scale": "1.6494845360824741",
+    "x": "22.500",
+    "y": "5.500"
+  },
+  "consoleErrorsAndWarnings": [],
+  "viewports": [
+    {
+      "width": 1280,
+      "height": 720,
+      "checked": [
+        "exploration",
+        "dialogue",
+        "battle",
+        "ending"
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "checked": [
+        "dialogue",
+        "no horizontal overflow"
+      ]
+    }
+  ],
+  "automation": {
+    "stateInjection": false,
+    "method": "Real UI clicks and key events; read-only DOM data attributes for observation",
+    "note": "One mixed-input complete run. Not a timed human first play, nor two separate pure-input full runs."
+  },
+  "automatedTests": {
+    "prologue": 17,
+    "originalDuel": 39,
+    "total": 56,
+    "failed": 0
+  }
+}
